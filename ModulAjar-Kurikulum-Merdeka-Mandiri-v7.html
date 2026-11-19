@@ -1,0 +1,3810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ModulAjar — Generator Modul Ajar Kurikulum Merdeka & LKPD Kontekstual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            sans: ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <!-- Library docx.js untuk ekspor langsung ke Microsoft Word (.docx) -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+  <style>
+    body {
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+      color: #0f172a;
+      background-color: #f4faf7;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    }
+    @media print {
+      body {
+        background-color: #ffffff !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .print-page-break {
+        page-break-before: always;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-emerald-50/70 via-teal-50/30 to-slate-50 text-slate-900 antialiased selection:bg-teal-200 selection:text-teal-950">
+
+  <!-- TOP HEADER BAR -->
+  <header class="no-print sticky top-0 z-30 border-b border-emerald-200/70 bg-white/85 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3.5 sm:px-6 lg:px-8">
+      <!-- Brand -->
+      <a
+        href="#bagian-penyusunan"
+        onclick="scrollToElement('bagian-penyusunan'); return false;"
+        class="flex items-center gap-2.5 shrink-0"
+      >
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </span>
+        <div>
+          <span class="block font-display text-base font-bold leading-none tracking-tight text-slate-900">
+            ModulAjar
+          </span>
+          <span class="mt-0.5 block text-[11px] font-medium text-teal-700">
+            Kurikulum Merdeka &amp; Deep Learning
+          </span>
+        </div>
+      </a>
+
+      <!-- Nav Links -->
+      <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex" aria-label="Navigasi utama">
+        <button
+          type="button"
+          onclick="scrollToElement('bagian-penyusunan')"
+          class="transition-colors hover:text-teal-800"
+        >
+          Formulir Input
+        </button>
+        <button
+          type="button"
+          onclick="scrollToElement('bagian-pratinjau')"
+          class="transition-colors hover:text-teal-800"
+        >
+          Hasil &amp; Pratinjau
+        </button>
+        <button
+          type="button"
+          onclick="goToPengesahan()"
+          class="transition-colors hover:text-teal-800"
+        >
+          Pengesahan
+        </button>
+        <button
+          type="button"
+          id="navPanduanFaseBtn"
+          onclick="toggleFaseGuide()"
+          class="transition-colors hover:text-teal-800"
+        >
+          Panduan Fase
+        </button>
+      </nav>
+
+      <!-- Primary Header Action -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onclick="handleFillExample()"
+          class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+        >
+          <svg class="h-3.5 w-3.5 text-teal-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          Isi Contoh
+        </button>
+        <button
+          type="button"
+          id="headerExportWordBtn"
+          onclick="handleExportWord()"
+          disabled
+          class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-teal-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Unduh Word (.docx)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE (LANDSCAPE INPUT ATAS, PREVIEW BAWAH) -->
+  <main class="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:px-8">
+
+    <!-- Welcome Hero Banner -->
+    <div class="no-print mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-teal-200/70 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:px-6">
+      <div>
+        <div class="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+          <span>Kurikulum Merdeka &bull; Fase A &ndash; F &bull; CP Otomatis</span>
+        </div>
+        <h1 class="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          Penyusun Modul Ajar &amp; LKPD Kontekstual
+        </h1>
+        <p class="mt-1 text-xs leading-relaxed text-slate-600 sm:text-sm">
+          Pilih Fase dan tuliskan Tujuan Pembelajaran (TP) — sistem otomatis merumuskan <strong>Capaian Pembelajaran (CP)</strong>, sintaks pembelajaran, LKPD, asesmen, hingga lembar pengesahan siap cetak.
+        </p>
+      </div>
+      <div class="flex shrink-0 items-center gap-2 sm:self-end">
+        <button
+          type="button"
+          onclick="toggleFaseGuide()"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50/70 px-3.5 py-2 text-xs font-semibold text-teal-800 transition-colors hover:bg-teal-100"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Panduan Fase A&ndash;F
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel Panduan Fase A-F (Collapsible) -->
+    <section
+      id="faseGuidePanel"
+      aria-label="Panduan Fase Kurikulum Merdeka"
+      class="no-print mb-6 hidden rounded-2xl border border-teal-200 bg-white p-5 shadow-sm"
+    >
+      <div class="mb-4 flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">
+            Panduan Pemetaan Fase Kurikulum Merdeka (A &ndash; F)
+          </h2>
+          <p class="text-xs text-slate-500">
+            Klik salah satu fase untuk mengisi otomatis jenjang kelas dan contoh Tujuan Pembelajaran
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="toggleFaseGuide(false)"
+          aria-label="Tutup panduan fase"
+          class="rounded-xl border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="faseGuideGrid" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- BAGIAN 1: FORMULIR INPUT LANDSCAPE (MELEBAR HORIZONTAL)               -->
+    <!-- ===================================================================== -->
+    <section id="bagian-penyusunan" class="no-print">
+      <form id="modulForm" class="space-y-5">
+        <!-- Alert Box -->
+        <div
+          id="errorAlert"
+          role="alert"
+          class="hidden rounded-2xl border border-red-200 bg-red-50 px-5 py-3.5 text-sm text-red-800 shadow-sm"
+        >
+          <p class="font-bold">Perhatian</p>
+          <p id="errorAlertText" class="mt-0.5 text-red-700"></p>
+        </div>
+
+        <!-- LANGKAH 1: FASE, PENGATURAN PEMBELAJARAN & TP (LANDSCAPE CARD) -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <div class="flex items-center gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-700 font-display text-xs font-bold text-white">
+                1
+              </span>
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Fase, Pengaturan Pembelajaran &amp; Tujuan Pembelajaran
+                </h2>
+                <p class="text-xs text-slate-500">
+                  Lengkapi detail pembelajaran di bawah ini secara horizontal
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="handleFillExample()"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50/70 px-3 py-1.5 text-xs font-semibold text-teal-800 transition-colors hover:bg-teal-100"
+            >
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              Isi Contoh Cepat
+            </button>
+          </div>
+
+          <div class="space-y-5">
+            <!-- Baris 1: Pemilih Fase A-F (Landscape 6 Kolom) -->
+            <div>
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <label class="text-xs font-bold tracking-wide text-slate-700">
+                  Pilih Fase Kurikulum Merdeka <span class="text-red-600">*</span>
+                </label>
+                <span id="activeFaseDescription" class="text-xs text-slate-500"></span>
+              </div>
+              <div id="faseButtonsGrid" class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"></div>
+            </div>
+
+            <!-- Baris 2: Kelas, Mata Pelajaran, Satuan Pendidikan, Tahun Ajaran (Landscape 4 Kolom) -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label for="kelasSelect" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Kelas <span class="text-red-600">*</span>
+                </label>
+                <div id="kelasSelectWrapper">
+                  <select
+                    id="kelasSelect"
+                    onchange="handleKelasSelectChange(this.value)"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  ></select>
+                </div>
+                <div id="kelasCustomWrapper" class="hidden flex gap-1.5">
+                  <input
+                    id="kelasCustomInput"
+                    type="text"
+                    placeholder="Contoh: Kelas IV SD"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  />
+                  <button
+                    type="button"
+                    onclick="switchKelasToList()"
+                    class="shrink-0 rounded-xl border border-slate-200 px-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    Daftar
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label for="mataPelajaran" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Mata Pelajaran <span class="font-normal text-slate-400">(Opsional)</span>
+                </label>
+                <input
+                  id="mataPelajaran"
+                  type="text"
+                  list="mapelSuggestions"
+                  placeholder="Misal: IPAS"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+                <datalist id="mapelSuggestions"></datalist>
+              </div>
+
+              <div>
+                <label for="satuanPendidikan" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Satuan Pendidikan / Sekolah
+                </label>
+                <input
+                  id="satuanPendidikan"
+                  type="text"
+                  oninput="saveIdentityProfile()"
+                  placeholder="Contoh: SDN 01 Harapan Bangsa"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+
+              <div>
+                <label for="tahunAjaran" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Tahun Ajaran
+                </label>
+                <input
+                  id="tahunAjaran"
+                  type="text"
+                  value="2026/2027"
+                  placeholder="2026/2027"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm tabular-nums text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+            </div>
+
+            <!-- Baris 3: Metode Pembelajaran, Alokasi Waktu (JP), Jumlah Pertemuan (Landscape 3 Kolom) -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+              <div class="lg:col-span-6">
+                <label for="metodeSelect" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Metode / Model Pembelajaran <span class="text-red-600">*</span>
+                </label>
+                <div id="metodeSelectWrapper">
+                  <select
+                    id="metodeSelect"
+                    onchange="handleMetodeSelectChange(this.value)"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  ></select>
+                </div>
+                <div id="metodeCustomWrapper" class="hidden flex gap-1.5">
+                  <input
+                    id="metodeCustomInput"
+                    type="text"
+                    placeholder="Contoh: Role Playing / Snowball Throwing / Mind Mapping"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  />
+                  <button
+                    type="button"
+                    onclick="switchMetodeToList()"
+                    class="shrink-0 rounded-xl border border-slate-200 px-2.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    Daftar
+                  </button>
+                </div>
+                <p id="metodeDescription" class="mt-1 text-[11px] text-slate-500"></p>
+              </div>
+
+              <div class="lg:col-span-3">
+                <label for="jumlahJp" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Alokasi Waktu (JP) <span class="text-red-600">*</span>
+                </label>
+                <div class="flex items-stretch overflow-hidden rounded-xl border border-slate-300 bg-white focus-within:border-teal-700 focus-within:ring-2 focus-within:ring-teal-700/15">
+                  <button
+                    type="button"
+                    onclick="adjustJumlahJp(-1)"
+                    title="Kurangi jumlah JP"
+                    aria-label="Kurangi jumlah JP"
+                    class="flex w-9 shrink-0 select-none items-center justify-center border-r border-slate-200 bg-slate-50 text-base font-bold text-teal-800 transition-colors hover:bg-teal-50"
+                  >
+                    &minus;
+                  </button>
+                  <input
+                    id="jumlahJp"
+                    type="text"
+                    required
+                    placeholder="2 JP (2 x 35 menit)"
+                    class="min-w-0 flex-1 border-0 bg-white px-2 py-2 text-center font-mono text-xs tabular-nums text-slate-900 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onclick="adjustJumlahJp(1)"
+                    title="Tambah jumlah JP"
+                    aria-label="Tambah jumlah JP"
+                    class="flex w-9 shrink-0 select-none items-center justify-center border-l border-slate-200 bg-slate-50 text-base font-bold text-teal-800 transition-colors hover:bg-teal-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div class="lg:col-span-3">
+                <label for="jumlahPertemuan" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Jumlah Pertemuan <span class="text-red-600">*</span>
+                </label>
+                <div class="flex items-stretch overflow-hidden rounded-xl border border-slate-300 bg-white focus-within:border-teal-700 focus-within:ring-2 focus-within:ring-teal-700/15">
+                  <button
+                    type="button"
+                    onclick="adjustJumlahPertemuan(-1)"
+                    title="Kurangi jumlah pertemuan"
+                    aria-label="Kurangi jumlah pertemuan"
+                    class="flex w-9 shrink-0 select-none items-center justify-center border-r border-slate-200 bg-slate-50 text-base font-bold text-teal-800 transition-colors hover:bg-teal-50"
+                  >
+                    &minus;
+                  </button>
+                  <div class="relative flex min-w-0 flex-1 items-center">
+                    <input
+                      id="jumlahPertemuan"
+                      type="number"
+                      min="1"
+                      max="16"
+                      step="1"
+                      value="1"
+                      required
+                      placeholder="1"
+                      class="w-full border-0 bg-white py-2 pl-2 pr-16 text-center font-mono text-sm tabular-nums text-slate-900 focus:outline-none"
+                    />
+                    <span class="pointer-events-none absolute right-2.5 text-[11px] font-medium text-slate-500">
+                      Pertemuan
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onclick="adjustJumlahPertemuan(1)"
+                    title="Tambah jumlah pertemuan"
+                    aria-label="Tambah jumlah pertemuan"
+                    class="flex w-9 shrink-0 select-none items-center justify-center border-l border-slate-200 bg-slate-50 text-base font-bold text-teal-800 transition-colors hover:bg-teal-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Baris 4: Tujuan Pembelajaran (TP) & Info Capaian Pembelajaran (CP) Otomatis (Landscape 2 Kolom) -->
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+              <div class="lg:col-span-7">
+                <label for="tujuanPembelajaran" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Tujuan Pembelajaran (TP) <span class="text-red-600">*</span>
+                </label>
+                <textarea
+                  id="tujuanPembelajaran"
+                  required
+                  rows="3"
+                  oninput="updateCpAutoHelper()"
+                  class="w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                ></textarea>
+                <p class="mt-1 text-[11px] text-slate-500">
+                  Tuliskan kompetensi dan lingkup materi secara spesifik agar CP, LKPD, sintaks metode, dan asesmen selaras.
+                </p>
+              </div>
+
+              <!-- Box Indikator Capaian Pembelajaran (CP) Otomatis -->
+              <div class="flex flex-col justify-between rounded-xl border border-teal-200/80 bg-teal-50/50 p-4 lg:col-span-5">
+                <div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-teal-900">
+                      <svg class="h-4 w-4 text-teal-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Capaian Pembelajaran (CP) Otomatis
+                    </span>
+                    <span id="cpAutoFaseBadge" class="rounded-md bg-teal-700 px-2 py-0.5 font-mono text-[11px] font-semibold text-white">
+                      Fase B
+                    </span>
+                  </div>
+                  <p id="cpAutoPreviewText" class="mt-2 text-xs leading-relaxed text-slate-700">
+                    Rumusan <strong>Capaian Pembelajaran (CP)</strong> Kurikulum Merdeka akan muncul otomatis pada hasil modul berdasarkan <strong>Fase B</strong> dan <strong>Tujuan Pembelajaran (TP)</strong> yang Anda masukkan.
+                  </p>
+                </div>
+                <p class="mt-3 border-t border-teal-200/60 pt-2 text-[11px] font-medium text-teal-800">
+                  Otomatis mencakup Elemen CP, Rumusan CP Fase, dan Keterkaitan TP.
+                </p>
+              </div>
+            </div>
+
+            <!-- Baris 5: Dimensi Profil Lulusan (8 DPL - Horizontal Pills) -->
+            <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3.5">
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <label class="text-xs font-semibold text-slate-700">
+                  Dimensi Profil Lulusan (8 DPL) <span class="font-normal text-slate-500">&mdash; Opsional</span>
+                </label>
+                <div class="flex items-center gap-3">
+                  <span id="dplHelperText" class="text-[11px] text-slate-500">
+                    Otomatis dipilihkan 3&ndash;4 DPL paling relevan jika tidak dipilih.
+                  </span>
+                  <span id="dplStatusAction"></span>
+                </div>
+              </div>
+              <div id="dplButtonsGrid" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANGKAH 2: IDENTITAS GURU & PENGESAHAN RESMI (COMPACT LANDSCAPE CARD) -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm sm:p-6" id="bagian-pengesahan-form">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-700 font-display text-xs font-bold text-white">
+                2
+              </span>
+              <div>
+                <h2 class="text-base font-bold text-slate-900">
+                  Identitas Guru &amp; Lembar Pengesahan
+                </h2>
+                <p class="text-xs text-slate-500">
+                  Otomatis tersimpan di browser untuk pembuatan modul berikutnya
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Baris Landscape 4 Kolom -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label for="namaGuru" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Nama Guru / Penyusun <span class="text-red-600">*</span>
+                </label>
+                <input
+                  id="namaGuru"
+                  type="text"
+                  required
+                  oninput="saveIdentityProfile()"
+                  placeholder="Contoh: Budi Santoso, S.Pd."
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+
+              <div>
+                <label for="nipGuru" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  NIP Guru
+                </label>
+                <input
+                  id="nipGuru"
+                  type="text"
+                  oninput="saveIdentityProfile()"
+                  placeholder="19850412 201001 1 012"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm tabular-nums text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+
+              <div>
+                <label for="namaKepalaSekolah" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Nama Kepala Sekolah
+                </label>
+                <input
+                  id="namaKepalaSekolah"
+                  type="text"
+                  oninput="saveIdentityProfile()"
+                  placeholder="Contoh: Dra. Siti Aminah, M.Pd."
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+
+              <div>
+                <label for="nipKepalaSekolah" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  NIP Kepala Sekolah
+                </label>
+                <input
+                  id="nipKepalaSekolah"
+                  type="text"
+                  oninput="saveIdentityProfile()"
+                  placeholder="19720817 199802 2 003"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm tabular-nums text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+            </div>
+
+            <!-- Baris Tempat & Tanggal Penetapan -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+              <div class="lg:col-span-5">
+                <label for="tempatPengesahan" class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Kota / Tempat Penetapan
+                </label>
+                <input
+                  id="tempatPengesahan"
+                  type="text"
+                  oninput="saveIdentityProfile()"
+                  placeholder="Contoh: Surabaya / Bandung / Jakarta"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+              </div>
+
+              <div class="lg:col-span-7">
+                <span class="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Tanggal, Bulan, dan Tahun Pengesahan
+                </span>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <select
+                    id="tanggalPengesahan"
+                    aria-label="Tanggal"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm tabular-nums text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  ></select>
+                  <select
+                    id="bulanPengesahan"
+                    aria-label="Bulan"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                  ></select>
+                  <div>
+                    <input
+                      id="tahunPengesahan"
+                      type="text"
+                      list="tahunOptionsList"
+                      aria-label="Tahun"
+                      class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm tabular-nums text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                    />
+                    <datalist id="tahunOptionsList">
+                      <option value="2025"></option>
+                      <option value="2026"></option>
+                      <option value="2027"></option>
+                      <option value="2028"></option>
+                    </datalist>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANGKAH 3: KONEKSI & TOMBOL GENERATE LANGSUNG (TANPA PILIHAN MODEL AI) -->
+        <div class="rounded-2xl border border-teal-200/90 bg-white p-5 shadow-sm sm:p-6">
+          <div class="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+            <!-- Input Kunci API Ringkas -->
+            <div class="flex-1 max-w-xl">
+              <div class="mb-1.5 flex items-center justify-between gap-2">
+                <label for="apiKeyInput" class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-700 font-display text-[11px] font-bold text-white">
+                    3
+                  </span>
+                  <span>Kunci Akses / API Key <span class="text-red-600">*</span></span>
+                </label>
+                <span class="text-[11px] text-slate-500">
+                  Belum punya? Hubungi
+                  <a
+                    href="https://wa.me/08111258099"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="font-semibold text-teal-700 hover:underline"
+                  >WhatsApp</a>
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <input
+                  id="apiKeyInput"
+                  type="password"
+                  required
+                  autocomplete="off"
+                  placeholder="Tempel Kunci API Anda di sini (AIza...)"
+                  oninput="handleApiKeyInput()"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/15"
+                />
+                <button
+                  type="button"
+                  id="toggleApiKeyBtn"
+                  onclick="toggleApiKeyVisibility()"
+                  class="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Lihat
+                </button>
+              </div>
+              <label class="mt-2 inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  id="saveApiKeyCheck"
+                  onchange="handleSaveApiKeyToggle()"
+                  class="rounded border-slate-300 text-teal-700 focus:ring-teal-700"
+                />
+                <span>Ingat kunci di browser ini agar tidak perlu menempel ulang</span>
+              </label>
+            </div>
+
+            <!-- Tombol Langsung Generate -->
+            <div class="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                id="resetBtn"
+                onclick="handleResetForm()"
+                title="Bersihkan formulir"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reset
+              </button>
+              <button
+                type="submit"
+                id="submitBtn"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-teal-700 px-7 py-3 text-sm font-bold text-white shadow-md shadow-teal-700/15 transition-all hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span id="submitBtnContent" class="inline-flex items-center gap-2">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                  Generate Modul Ajar
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- BAGIAN 2: PRATINJAU HASIL DOKUMEN DI BAWAH FORMULIR                   -->
+    <!-- ===================================================================== -->
+    <section class="mt-8">
+      <div class="rounded-2xl border border-slate-200/90 bg-white shadow-sm print-only-container" id="bagian-pratinjau">
+        <!-- Toolbar Pratinjau -->
+        <div class="no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 sm:px-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">
+              Hasil &amp; Pratinjau Dokumen Modul Ajar
+            </h2>
+            <p id="previewSubtitle" class="text-xs text-slate-500">
+              Otomatis memuat Capaian Pembelajaran (CP), Pembelajaran Mendalam, 8 DPL &amp; LKPD Kontekstual
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              id="copyTextBtn"
+              onclick="handleCopyText()"
+              disabled
+              class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Salin Teks
+            </button>
+            <button
+              type="button"
+              id="printBtn"
+              onclick="window.print()"
+              disabled
+              class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Cetak / PDF
+            </button>
+            <button
+              type="button"
+              id="previewExportWordBtn"
+              onclick="handleExportWord()"
+              disabled
+              class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-teal-700 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Unduh .docx
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Navigasi Bagian Dokumen -->
+        <div
+          id="previewTabsBar"
+          class="no-print hidden items-center gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/80 px-5 py-2.5"
+          role="tablist"
+          aria-label="Bagian Modul Ajar"
+        ></div>
+
+        <!-- Body Konten -->
+        <div class="p-6 sm:p-8 lg:p-10">
+          <!-- Empty State -->
+          <div id="emptyStateView" class="mx-auto max-w-2xl py-10 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-teal-200 bg-teal-50 text-teal-700">
+              <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">
+              Siap Menyusun Modul Ajar Anda
+            </h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-slate-600">
+              Lengkapi formulir di atas lalu klik <strong>Generate Modul Ajar</strong>. Dokumen lengkap beserta <strong>Capaian Pembelajaran (CP) otomatis</strong> akan langsung muncul di area ini.
+            </p>
+            <div class="mt-6 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 text-left">
+              <p class="text-xs font-bold text-slate-700">
+                Komponen Lengkap yang Otomatis Disusun:
+              </p>
+              <div class="mt-2.5 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-3">
+                <span class="font-semibold text-teal-800">&bull; Capaian Pembelajaran (CP) Otomatis</span>
+                <span>&bull; 8 Dimensi Profil Lulusan (DPL)</span>
+                <span>&bull; Prinsip Deep Learning</span>
+                <span>&bull; Sintaks Metode Per Pertemuan</span>
+                <span>&bull; LKPD Kontekstual &amp; Bagan Alur</span>
+                <span>&bull; Asesmen, Rubrik &amp; Pengesahan</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="handleFillExample('B')"
+              class="mt-6 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
+            >
+              Coba Muat Contoh Data (Fase B)
+            </button>
+          </div>
+
+          <!-- Loading Skeleton -->
+          <div id="loadingStateView" class="hidden space-y-6 py-4" aria-busy="true">
+            <div class="space-y-2 border-b border-slate-200 pb-6">
+              <div class="h-4 w-56 animate-pulse rounded bg-slate-200"></div>
+              <div class="h-7 w-3/4 animate-pulse rounded bg-slate-200"></div>
+              <div class="h-4 w-1/2 animate-pulse rounded bg-slate-100"></div>
+            </div>
+            <div class="space-y-3">
+              <div class="h-5 w-64 animate-pulse rounded bg-teal-100"></div>
+              <div class="h-24 animate-pulse rounded-xl bg-teal-50/70"></div>
+            </div>
+            <div class="space-y-2.5 pt-2">
+              <div class="h-5 w-64 animate-pulse rounded bg-slate-200"></div>
+              <div class="h-4 w-full animate-pulse rounded bg-slate-100"></div>
+              <div class="h-4 w-11/12 animate-pulse rounded bg-slate-100"></div>
+              <div class="h-4 w-4/5 animate-pulse rounded bg-slate-100"></div>
+            </div>
+            <p id="loadingStatusText" class="pt-2 text-center text-xs font-medium text-teal-800">
+              Sedang merumuskan Capaian Pembelajaran (CP) otomatis, Modul Pembelajaran Mendalam, dan LKPD Kontekstual...
+            </p>
+          </div>
+
+          <!-- Rendered Modul Ajar Document -->
+          <article id="documentArticle" class="hidden space-y-8 text-slate-800"></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="no-print mt-12 border-t border-emerald-200/70 bg-white/70">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-slate-600 sm:flex-row sm:px-6 lg:px-8">
+      <p>
+        Generator Modul Ajar Kurikulum Merdeka &bull; Capaian Pembelajaran Otomatis &amp; Pembelajaran Mendalam
+      </p>
+      <p class="font-semibold text-teal-900">
+        Development: Moh. Yustian Yusuf Al Khan, S.Pd
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // KATALOG KURIKULUM MERDEKA, 8 DPL & METODE PEMBELAJARAN
+    // =========================================================================
+    const FASE_CATALOG = [
+      {
+        code: 'A',
+        label: 'Fase A',
+        jenjang: 'SD / MI',
+        rentangKelas: 'Kelas I - II',
+        deskripsi: 'Pendidikan Dasar Awal (Kelas 1 & 2 SD/MI)',
+        kelasOptions: ['Kelas I SD', 'Kelas II SD', 'Kelas I MI', 'Kelas II MI'],
+        jpMenit: 35,
+        jpDefault: '2 JP (2 x 35 menit)',
+        contohMapel: ['Bahasa Indonesia', 'Matematika', 'Pendidikan Pancasila', 'Seni Rupa'],
+        contohTp:
+          'Peserta didik mampu mengenali nilai tempat satuan dan puluhan serta melakukan penjumlahan bilangan cacah sampai 20 menggunakan benda konkret di sekitar kelas.',
+      },
+      {
+        code: 'B',
+        label: 'Fase B',
+        jenjang: 'SD / MI',
+        rentangKelas: 'Kelas III - IV',
+        deskripsi: 'Pendidikan Dasar Menengah (Kelas 3 & 4 SD/MI)',
+        kelasOptions: ['Kelas III SD', 'Kelas IV SD', 'Kelas III MI', 'Kelas IV MI'],
+        jpMenit: 35,
+        jpDefault: '2 JP (2 x 35 menit)',
+        contohMapel: ['IPAS', 'Matematika', 'Bahasa Indonesia', 'Pendidikan Pancasila'],
+        contohTp:
+          'Peserta didik mampu menganalisis proses fotosintesis pada tumbuhan hijau serta mengaitkannya dengan pentingnya pelestarian lingkungan melalui percobaan sederhana.',
+      },
+      {
+        code: 'C',
+        label: 'Fase C',
+        jenjang: 'SD / MI',
+        rentangKelas: 'Kelas V - VI',
+        deskripsi: 'Pendidikan Dasar Akhir (Kelas 5 & 6 SD/MI)',
+        kelasOptions: ['Kelas V SD', 'Kelas VI SD', 'Kelas V MI', 'Kelas VI MI'],
+        jpMenit: 35,
+        jpDefault: '2 JP (2 x 35 menit)',
+        contohMapel: ['IPAS', 'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris'],
+        contohTp:
+          'Peserta didik mampu mengidentifikasi sifat-sifat cahaya dan menjelaskan cara kerja indra penglihatan manusia melalui demonstrasi dan diskusi kelompok.',
+      },
+      {
+        code: 'D',
+        label: 'Fase D',
+        jenjang: 'SMP / MTs',
+        rentangKelas: 'Kelas VII - IX',
+        deskripsi: 'Pendidikan Menengah Pertama (Kelas 7, 8 & 9 SMP/MTs)',
+        kelasOptions: [
+          'Kelas VII SMP',
+          'Kelas VIII SMP',
+          'Kelas IX SMP',
+          'Kelas VII MTs',
+          'Kelas VIII MTs',
+          'Kelas IX MTs',
+        ],
+        jpMenit: 40,
+        jpDefault: '2 JP (2 x 40 menit)',
+        contohMapel: ['IPA', 'IPS', 'Matematika', 'Bahasa Indonesia', 'Informatika'],
+        contohTp:
+          'Peserta didik mampu menganalisis interaksi antara komponen biotik dan abiotik dalam ekosistem serta merancang solusi sederhana atas pencemaran lingkungan lokal.',
+      },
+      {
+        code: 'E',
+        label: 'Fase E',
+        jenjang: 'SMA / MA / SMK',
+        rentangKelas: 'Kelas X',
+        deskripsi: 'Pendidikan Menengah Atas Awal (Kelas 10 SMA/MA/SMK)',
+        kelasOptions: ['Kelas X SMA', 'Kelas X SMK', 'Kelas X MA', 'Kelas X MAK'],
+        jpMenit: 45,
+        jpDefault: '2 JP (2 x 45 menit)',
+        contohMapel: ['Biologi', 'Kimia', 'Fisika', 'Ekonomi', 'Matematika', 'Informatika'],
+        contohTp:
+          'Peserta didik mampu menganalisis prinsip kimia hijau dalam kehidupan sehari-hari dan mengevaluasi dampak reaksi kimia rumah tangga terhadap kelestarian lingkungan.',
+      },
+      {
+        code: 'F',
+        label: 'Fase F',
+        jenjang: 'SMA / MA / SMK',
+        rentangKelas: 'Kelas XI - XII',
+        deskripsi: 'Pendidikan Menengah Atas Lanjutan (Kelas 11 & 12 SMA/MA/SMK)',
+        kelasOptions: [
+          'Kelas XI SMA',
+          'Kelas XII SMA',
+          'Kelas XI SMK',
+          'Kelas XII SMK',
+          'Kelas XI MA',
+          'Kelas XII MA',
+        ],
+        jpMenit: 45,
+        jpDefault: '2 JP (2 x 45 menit)',
+        contohMapel: ['Matematika Lanjut', 'Fisika', 'Sosiologi', 'Bahasa Inggris', 'Kejuruan SMK'],
+        contohTp:
+          'Peserta didik mampu mengevaluasi dinamika perubahan sosial masyarakat di era digital serta merancang proyek pemberdayaan komunitas berbasis kearifan lokal.',
+      },
+    ];
+
+    const DIMENSI_PROFIL_LULUSAN = [
+      {
+        code: 'keimanan_ketakwaan',
+        nama: 'Keimanan & Ketakwaan',
+        deskripsi: 'Menghayati nilai spiritual, akhlak mulia, dan rasa syukur dalam belajar.',
+      },
+      {
+        code: 'kewargaan',
+        nama: 'Kewargaan',
+        deskripsi: 'Peduli sosial, cinta tanah air, toleransi, dan tanggung jawab kewarganegaraan.',
+      },
+      {
+        code: 'penalaran_kritis',
+        nama: 'Penalaran Kritis',
+        deskripsi: 'Menganalisis informasi, mengevaluasi bukti, dan memecahkan masalah logis.',
+      },
+      {
+        code: 'kreativitas',
+        nama: 'Kreativitas',
+        deskripsi: 'Menghasilkan gagasan orisinal, karya inovatif, dan solusi alternatif.',
+      },
+      {
+        code: 'kolaborasi',
+        nama: 'Kolaborasi',
+        deskripsi: 'Bekerja sama secara efektif, berbagi peran, dan menghargai kontribusi tim.',
+      },
+      {
+        code: 'kemandirian',
+        nama: 'Kemandirian',
+        deskripsi: 'Bertanggung jawab atas proses belajar, inisiatif, dan regulasi diri.',
+      },
+      {
+        code: 'kesehatan',
+        nama: 'Kesehatan',
+        deskripsi: 'Menjaga kesehatan fisik, mental, kebugaran, dan kesejahteraan lingkungan.',
+      },
+      {
+        code: 'komunikasi',
+        nama: 'Komunikasi',
+        deskripsi: 'Menyampaikan gagasan secara lisan, tulisan, dan visual dengan efektif.',
+      },
+    ];
+
+    const METODE_PEMBELAJARAN_CATALOG = [
+      {
+        id: 'Problem Based Learning (PBL)',
+        nama: 'Problem Based Learning (PBL)',
+        deskripsi:
+          'Pembelajaran dimulai dari masalah kontekstual nyata untuk melatih penyelidikan dan pemecahan masalah kritis.',
+      },
+      {
+        id: 'Project Based Learning (PjBL)',
+        nama: 'Project Based Learning (PjBL)',
+        deskripsi:
+          'Siswa merancang, membuat, dan mempresentasikan produk atau karya nyata berbasis tantangan kontekstual.',
+      },
+      {
+        id: 'STEAM (Science, Technology, Engineering, Arts, Mathematics)',
+        nama: 'STEAM (Science, Technology, Engineering, Arts, Mathematics)',
+        deskripsi:
+          'Integrasi lintas disiplin sains, teknologi, rekayasa, seni, dan matematika dalam pemecahan masalah kreatif.',
+      },
+      {
+        id: 'Discovery Learning',
+        nama: 'Discovery Learning',
+        deskripsi:
+          'Siswa diarahkan menemukan konsep dan prinsip secara mandiri melalui stimulasi, pengumpulan data, dan pembuktian.',
+      },
+      {
+        id: 'Inquiry Learning',
+        nama: 'Inquiry Learning (Pembelajaran Inkuiri)',
+        deskripsi:
+          'Mendorong siswa merumuskan pertanyaan, membuat hipotesis, melakukan investigasi, dan menarik kesimpulan ilmiah.',
+      },
+      {
+        id: 'Contextual Teaching and Learning (CTL)',
+        nama: 'Contextual Teaching and Learning (CTL)',
+        deskripsi:
+          'Mengaitkan langsung materi pelajaran dengan situasi kehidupan nyata siswa di rumah, sekolah, dan masyarakat.',
+      },
+      {
+        id: 'Cooperative Learning',
+        nama: 'Cooperative Learning (Jigsaw / STAD / Think-Pair-Share)',
+        deskripsi:
+          'Belajar aktif dalam kelompok kecil heterogen untuk membangun saling ketergantungan positif dan kolaborasi.',
+      },
+      {
+        id: 'Design Thinking',
+        nama: 'Design Thinking',
+        deskripsi:
+          'Pendekatan kreatif bertahap: berempati, merumuskan masalah, menggagas ide, membuat purwarupa, dan menguji.',
+      },
+      {
+        id: 'Game-Based Learning (Gamifikasi)',
+        nama: 'Game-Based Learning / Gamifikasi',
+        deskripsi:
+          'Memanfaatkan misi, tantangan, level, atau permainan edukatif untuk pembelajaran yang menggembirakan.',
+      },
+      {
+        id: 'Pembelajaran Berdiferensiasi',
+        nama: 'Pembelajaran Berdiferensiasi (Differentiated Instruction)',
+        deskripsi:
+          'Menyesuaikan konten, proses, dan produk belajar berdasarkan kesiapan, minat, dan profil belajar siswa.',
+      },
+      {
+        id: 'Flipped Classroom',
+        nama: 'Flipped Classroom (Kelas Terbalik)',
+        deskripsi:
+          'Eksplorasi materi awal sebelum kelas dan pendalaman diskusi, praktik, serta aplikasi intensif di ruang kelas.',
+      },
+    ];
+
+    const BULAN_INDONESIA = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+
+    const PREVIEW_TABS = [
+      { id: 'all', label: 'Semua Bagian' },
+      { id: 'info', label: 'A. Informasi & CP' },
+      { id: 'kegiatan', label: 'B. Kegiatan Inti' },
+      { id: 'bahan', label: 'C. Bahan Ajar' },
+      { id: 'lkpd', label: 'D. LKPD' },
+      { id: 'media', label: 'E. Media' },
+      { id: 'asesmen', label: 'F. Asesmen' },
+      { id: 'pengesahan', label: 'G. Pengesahan' },
+    ];
+
+    const IDENTITY_STORAGE_KEY = 'modulajar_profil_pendidik_v1';
+    const API_KEY_STORAGE_KEY = 'gemini_modul_api_key';
+    const DEFAULT_MODEL_ID = 'gemini-2.5-flash';
+
+    // =========================================================================
+    // STATE APLIKASI
+    // =========================================================================
+    const state = {
+      fase: 'B',
+      customKelasMode: false,
+      customMetodeMode: false,
+      dplPilihan: [],
+      showFaseGuide: false,
+      isLoading: false,
+      modul: null,
+      activeTab: 'all',
+      showTeacherKeyInLkpd: true,
+    };
+
+    function getFaseByCode(code) {
+      return FASE_CATALOG.find((item) => item.code === code) || FASE_CATALOG[1];
+    }
+
+    // =========================================================================
+    // INISIALISASI ANTARMUKA
+    // =========================================================================
+    function initApp() {
+      const now = new Date();
+      const tglSelect = document.getElementById('tanggalPengesahan');
+      for (let i = 1; i <= 31; i++) {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent = String(i);
+        if (i === now.getDate()) opt.selected = true;
+        tglSelect.appendChild(opt);
+      }
+
+      const blnSelect = document.getElementById('bulanPengesahan');
+      BULAN_INDONESIA.forEach((bln, idx) => {
+        const opt = document.createElement('option');
+        opt.value = bln;
+        opt.textContent = bln;
+        if (idx === now.getMonth()) opt.selected = true;
+        blnSelect.appendChild(opt);
+      });
+      document.getElementById('tahunPengesahan').value = String(now.getFullYear());
+
+      // Populate Metode Pembelajaran dropdown
+      const metodeSelect = document.getElementById('metodeSelect');
+      METODE_PEMBELAJARAN_CATALOG.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.nama;
+        metodeSelect.appendChild(opt);
+      });
+      const customMetodeOpt = document.createElement('option');
+      customMetodeOpt.value = '__custom__';
+      customMetodeOpt.textContent = 'Metode Lainnya (tulis manual)...';
+      metodeSelect.appendChild(customMetodeOpt);
+      updateMetodeDescription();
+
+      renderFaseGuideGrid();
+      renderFaseControls();
+      renderDplButtons();
+      renderPreviewTabs();
+      updateCpAutoHelper();
+
+      // Load saved identity profile
+      try {
+        const raw = localStorage.getItem(IDENTITY_STORAGE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p.namaGuru) document.getElementById('namaGuru').value = p.namaGuru;
+          if (p.nipGuru) document.getElementById('nipGuru').value = p.nipGuru;
+          if (p.namaKepalaSekolah) document.getElementById('namaKepalaSekolah').value = p.namaKepalaSekolah;
+          if (p.nipKepalaSekolah) document.getElementById('nipKepalaSekolah').value = p.nipKepalaSekolah;
+          if (p.satuanPendidikan) document.getElementById('satuanPendidikan').value = p.satuanPendidikan;
+          if (p.tempatPengesahan) document.getElementById('tempatPengesahan').value = p.tempatPengesahan;
+        }
+      } catch (e) {}
+
+      // Load saved API key
+      try {
+        const savedKey = sanitizeApiKey(localStorage.getItem(API_KEY_STORAGE_KEY));
+        if (savedKey) {
+          document.getElementById('apiKeyInput').value = savedKey;
+          document.getElementById('saveApiKeyCheck').checked = true;
+        }
+      } catch (e) {}
+    }
+
+    function saveIdentityProfile() {
+      try {
+        const payload = {
+          namaGuru: document.getElementById('namaGuru').value,
+          nipGuru: document.getElementById('nipGuru').value,
+          namaKepalaSekolah: document.getElementById('namaKepalaSekolah').value,
+          nipKepalaSekolah: document.getElementById('nipKepalaSekolah').value,
+          satuanPendidikan: document.getElementById('satuanPendidikan').value,
+          tempatPengesahan: document.getElementById('tempatPengesahan').value,
+        };
+        localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {}
+    }
+
+    function sanitizeApiKey(raw) {
+      return String(raw || '')
+        .replace(/[\u200B-\u200D\uFEFF\u00A0\s]+/g, '')
+        .replace(/[^\x21-\x7E]/g, '')
+        .trim();
+    }
+
+    function formatFetchErrorMessage(err) {
+      const msg = err instanceof Error ? err.message : String(err || '');
+      if (/failed to fetch|networkerror|load failed|network request failed/i.test(msg)) {
+        return 'Koneksi ke server terputus (Failed to fetch). Pastikan file HTML dibuka di browser penuh (Chrome/Edge), koneksi internet stabil, dan Kunci API tidak mengandung spasi.';
+      }
+      return msg || 'Terjadi kesalahan jaringan saat menyusun modul ajar.';
+    }
+
+    function adjustJumlahJp(delta) {
+      const inputEl = document.getElementById('jumlahJp');
+      if (!inputEl) return;
+      const raw = inputEl.value.trim();
+      const faseDef = getFaseByCode(state.fase);
+      const defaultMenit = faseDef && faseDef.jpMenit ? faseDef.jpMenit : 35;
+
+      let currentJp = 2;
+      const jpMatch = raw.match(/(\d+)\s*jp/i) || raw.match(/(\d+)/);
+      if (jpMatch) {
+        currentJp = parseInt(jpMatch[1], 10) || 2;
+      }
+
+      let menitPerJp = defaultMenit;
+      const menitMatch = raw.match(/x\s*(\d+)\s*menit/i);
+      if (menitMatch) {
+        menitPerJp = parseInt(menitMatch[1], 10) || defaultMenit;
+      }
+
+      const nextJp = Math.min(Math.max(currentJp + delta, 1), 36);
+      inputEl.value = `${nextJp} JP (${nextJp} x ${menitPerJp} menit)`;
+    }
+
+    function adjustJumlahPertemuan(delta) {
+      const inputEl = document.getElementById('jumlahPertemuan');
+      if (!inputEl) return;
+      const current = parseInt(inputEl.value, 10) || 1;
+      const nextVal = Math.min(Math.max(current + delta, 1), 16);
+      inputEl.value = String(nextVal);
+    }
+
+    function handleApiKeyInput() {
+      const el = document.getElementById('apiKeyInput');
+      const cleaned = sanitizeApiKey(el.value);
+      if (el.value !== cleaned) {
+        el.value = cleaned;
+      }
+      if (document.getElementById('saveApiKeyCheck').checked && cleaned) {
+        localStorage.setItem(API_KEY_STORAGE_KEY, cleaned);
+      }
+    }
+
+    function handleSaveApiKeyToggle() {
+      const checked = document.getElementById('saveApiKeyCheck').checked;
+      if (!checked) {
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+      } else {
+        handleApiKeyInput();
+      }
+    }
+
+    function toggleApiKeyVisibility() {
+      const inp = document.getElementById('apiKeyInput');
+      const btn = document.getElementById('toggleApiKeyBtn');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.textContent = 'Sembunyikan';
+      } else {
+        inp.type = 'password';
+        btn.textContent = 'Lihat';
+      }
+    }
+
+    function scrollToElement(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function goToPengesahan() {
+      if (state.modul) {
+        state.activeTab = 'pengesahan';
+        renderPreviewTabs();
+        renderDocument();
+        scrollToElement('bagian-pratinjau');
+      } else {
+        scrollToElement('bagian-pengesahan-form');
+      }
+    }
+
+    function toggleFaseGuide(forceState) {
+      state.showFaseGuide = typeof forceState === 'boolean' ? forceState : !state.showFaseGuide;
+      const panel = document.getElementById('faseGuidePanel');
+      const navBtn = document.getElementById('navPanduanFaseBtn');
+      if (state.showFaseGuide) {
+        panel.classList.remove('hidden');
+        if (navBtn) navBtn.classList.add('font-bold', 'text-teal-800');
+      } else {
+        panel.classList.add('hidden');
+        if (navBtn) navBtn.classList.remove('font-bold', 'text-teal-800');
+      }
+    }
+
+    function updateCpAutoHelper() {
+      const faseDef = getFaseByCode(state.fase);
+      const tpVal = document.getElementById('tujuanPembelajaran')?.value.trim() || '';
+      const badge = document.getElementById('cpAutoFaseBadge');
+      const previewText = document.getElementById('cpAutoPreviewText');
+      if (!badge || !previewText) return;
+
+      badge.textContent = `${faseDef.label} (${faseDef.rentangKelas})`;
+      if (tpVal.length > 10) {
+        const snippet = tpVal.length > 95 ? `${tpVal.slice(0, 95)}...` : tpVal;
+        previewText.innerHTML = `Siap memetakan <strong>Capaian Pembelajaran (CP) ${faseDef.label}</strong> yang selaras dengan TP: <em>"${escapeHtml(snippet)}"</em> saat tombol <strong>Generate Modul Ajar</strong> diklik.`;
+      } else {
+        previewText.innerHTML = `Rumusan <strong>Capaian Pembelajaran (CP)</strong> Kurikulum Merdeka akan muncul otomatis pada hasil modul berdasarkan <strong>${faseDef.label} (${faseDef.jenjang})</strong> dan <strong>Tujuan Pembelajaran (TP)</strong> yang Anda masukkan.`;
+      }
+    }
+
+    function renderFaseGuideGrid() {
+      const grid = document.getElementById('faseGuideGrid');
+      grid.innerHTML = FASE_CATALOG.map(
+        (item) => `
+          <button
+            type="button"
+            onclick="handleFillExample('${item.code}'); toggleFaseGuide(false);"
+            class="flex flex-col items-start rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-left transition-all hover:border-teal-700 hover:bg-teal-50/50"
+          >
+            <div class="flex w-full items-center justify-between gap-2 text-xs">
+              <span class="font-bold text-teal-800">${item.label}</span>
+              <span class="font-mono text-slate-500">${item.jenjang} &bull; ${item.rentangKelas}</span>
+            </div>
+            <p class="mt-1.5 text-xs leading-relaxed text-slate-600">${item.deskripsi}</p>
+          </button>
+        `
+      ).join('');
+    }
+
+    function renderFaseControls() {
+      const activeFase = getFaseByCode(state.fase);
+      const grid = document.getElementById('faseButtonsGrid');
+      grid.innerHTML = FASE_CATALOG.map((item) => {
+        const selected = state.fase === item.code;
+        return `
+          <button
+            type="button"
+            onclick="selectFase('${item.code}')"
+            class="flex flex-col items-start rounded-xl border px-3 py-2 text-left transition-all ${
+              selected
+                ? 'border-teal-700 bg-teal-50/80 text-teal-950 ring-1 ring-teal-700/30'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+            }"
+          >
+            <div class="flex w-full items-center justify-between gap-1">
+              <span class="whitespace-nowrap text-xs font-bold">${item.label}</span>
+              <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600">${item.jenjang}</span>
+            </div>
+            <span class="mt-0.5 whitespace-nowrap text-[11px] text-slate-500">${item.rentangKelas}</span>
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('activeFaseDescription').innerHTML =
+        `<span class="font-semibold text-teal-800">${activeFase.label}:</span> ${activeFase.deskripsi}`;
+
+      // Update Kelas dropdown
+      const kelasSelect = document.getElementById('kelasSelect');
+      kelasSelect.innerHTML =
+        activeFase.kelasOptions
+          .map((opt) => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`)
+          .join('') + `<option value="__custom__">Lainnya (tulis manual)...</option>`;
+
+      if (state.fase === 'B' && activeFase.kelasOptions[1]) {
+        kelasSelect.value = activeFase.kelasOptions[1];
+      } else {
+        kelasSelect.value = activeFase.kelasOptions[0];
+      }
+
+      document.getElementById('jumlahJp').value = activeFase.jpDefault;
+      document.getElementById('jumlahJp').placeholder = activeFase.jpDefault;
+      document.getElementById('mataPelajaran').placeholder = `Misal: ${activeFase.contohMapel[0]}`;
+      document.getElementById('tujuanPembelajaran').placeholder = activeFase.contohTp;
+
+      const datalist = document.getElementById('mapelSuggestions');
+      datalist.innerHTML = activeFase.contohMapel
+        .map((m) => `<option value="${escapeHtml(m)}"></option>`)
+        .join('');
+
+      updateCpAutoHelper();
+    }
+
+    function selectFase(code) {
+      state.fase = code;
+      state.customKelasMode = false;
+      document.getElementById('kelasSelectWrapper').classList.remove('hidden');
+      document.getElementById('kelasCustomWrapper').classList.add('hidden');
+      renderFaseControls();
+      const activeFase = getFaseByCode(code);
+      document.getElementById('kelasSelect').value = activeFase.kelasOptions[0];
+    }
+
+    function handleKelasSelectChange(val) {
+      if (val === '__custom__') {
+        state.customKelasMode = true;
+        document.getElementById('kelasSelectWrapper').classList.add('hidden');
+        document.getElementById('kelasCustomWrapper').classList.remove('hidden');
+        document.getElementById('kelasCustomInput').value = '';
+        document.getElementById('kelasCustomInput').focus();
+      }
+    }
+
+    function switchKelasToList() {
+      state.customKelasMode = false;
+      document.getElementById('kelasSelectWrapper').classList.remove('hidden');
+      document.getElementById('kelasCustomWrapper').classList.add('hidden');
+      const activeFase = getFaseByCode(state.fase);
+      document.getElementById('kelasSelect').value = activeFase.kelasOptions[0];
+    }
+
+    function handleMetodeSelectChange(val) {
+      if (val === '__custom__') {
+        state.customMetodeMode = true;
+        document.getElementById('metodeSelectWrapper').classList.add('hidden');
+        document.getElementById('metodeCustomWrapper').classList.remove('hidden');
+        document.getElementById('metodeCustomInput').value = '';
+        document.getElementById('metodeDescription').textContent = '';
+        document.getElementById('metodeCustomInput').focus();
+      } else {
+        updateMetodeDescription();
+      }
+    }
+
+    function switchMetodeToList() {
+      state.customMetodeMode = false;
+      document.getElementById('metodeSelectWrapper').classList.remove('hidden');
+      document.getElementById('metodeCustomWrapper').classList.add('hidden');
+      document.getElementById('metodeSelect').value = METODE_PEMBELAJARAN_CATALOG[0].id;
+      updateMetodeDescription();
+    }
+
+    function updateMetodeDescription() {
+      const val = document.getElementById('metodeSelect').value;
+      const found = METODE_PEMBELAJARAN_CATALOG.find((m) => m.id === val);
+      document.getElementById('metodeDescription').textContent = found ? found.deskripsi : '';
+    }
+
+    function toggleDpl(code) {
+      const idx = state.dplPilihan.indexOf(code);
+      if (idx >= 0) {
+        state.dplPilihan.splice(idx, 1);
+      } else {
+        state.dplPilihan.push(code);
+      }
+      renderDplButtons();
+    }
+
+    function resetDplPilihan() {
+      state.dplPilihan = [];
+      renderDplButtons();
+    }
+
+    function renderDplButtons() {
+      const grid = document.getElementById('dplButtonsGrid');
+      grid.innerHTML = DIMENSI_PROFIL_LULUSAN.map((dpl) => {
+        const active = state.dplPilihan.includes(dpl.code);
+        return `
+          <button
+            type="button"
+            onclick="toggleDpl('${dpl.code}')"
+            title="${escapeHtml(dpl.deskripsi)}"
+            class="rounded-full border px-3 py-1 text-xs transition-all ${
+              active
+                ? 'border-teal-700 bg-teal-700 font-semibold text-white shadow-xs'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50'
+            }"
+          >
+            ${escapeHtml(dpl.nama)}
+          </button>
+        `;
+      }).join('');
+
+      const statusAction = document.getElementById('dplStatusAction');
+      const helperText = document.getElementById('dplHelperText');
+      if (state.dplPilihan.length > 0) {
+        statusAction.innerHTML = `<button type="button" onclick="resetDplPilihan()" class="text-[11px] font-semibold text-teal-700 hover:underline">Reset Otomatis</button>`;
+        helperText.textContent = `${state.dplPilihan.length} dimensi dipilih.`;
+      } else {
+        statusAction.innerHTML = '';
+        helperText.textContent = 'Otomatis dipilihkan 3–4 DPL paling relevan jika tidak dipilih.';
+      }
+    }
+
+    function getCurrentFormInput() {
+      const kelas = state.customKelasMode
+        ? document.getElementById('kelasCustomInput').value.trim()
+        : document.getElementById('kelasSelect').value.trim();
+      const metodePembelajaran = state.customMetodeMode
+        ? document.getElementById('metodeCustomInput').value.trim()
+        : document.getElementById('metodeSelect').value.trim();
+
+      return {
+        namaGuru: document.getElementById('namaGuru').value.trim(),
+        nipGuru: document.getElementById('nipGuru').value.trim(),
+        namaKepalaSekolah: document.getElementById('namaKepalaSekolah').value.trim(),
+        nipKepalaSekolah: document.getElementById('nipKepalaSekolah').value.trim(),
+        satuanPendidikan: document.getElementById('satuanPendidikan').value.trim(),
+        fase: state.fase,
+        kelas,
+        mataPelajaran: document.getElementById('mataPelajaran').value.trim(),
+        metodePembelajaran,
+        dplPilihan: [...state.dplPilihan],
+        jumlahJp: document.getElementById('jumlahJp').value.trim(),
+        jumlahPertemuan: Math.min(Math.max(parseInt(document.getElementById('jumlahPertemuan').value, 10) || 1, 1), 16),
+        tahunAjaran: document.getElementById('tahunAjaran').value.trim() || '2026/2027',
+        tujuanPembelajaran: document.getElementById('tujuanPembelajaran').value.trim(),
+        tempatPengesahan: document.getElementById('tempatPengesahan').value.trim(),
+        tanggalPengesahan: document.getElementById('tanggalPengesahan').value,
+        bulanPengesahan: document.getElementById('bulanPengesahan').value,
+        tahunPengesahan: document.getElementById('tahunPengesahan').value.trim() || '2026',
+      };
+    }
+
+    function handleFillExample(forceFase) {
+      const targetFase = forceFase || state.fase;
+      selectFase(targetFase);
+      const faseDef = getFaseByCode(targetFase);
+
+      const mapelEl = document.getElementById('mataPelajaran');
+      if (!mapelEl.value.trim()) mapelEl.value = faseDef.contohMapel[0];
+
+      const namaGuruEl = document.getElementById('namaGuru');
+      if (!namaGuruEl.value.trim()) namaGuruEl.value = 'Budi Santoso, S.Pd.';
+
+      const nipGuruEl = document.getElementById('nipGuru');
+      if (!nipGuruEl.value.trim()) nipGuruEl.value = '19870514 201402 1 003';
+
+      const kepsekEl = document.getElementById('namaKepalaSekolah');
+      if (!kepsekEl.value.trim()) kepsekEl.value = 'Dra. Hj. Siti Aminah, M.Pd.';
+
+      const nipKepsekEl = document.getElementById('nipKepalaSekolah');
+      if (!nipKepsekEl.value.trim()) nipKepsekEl.value = '19710921 199803 2 005';
+
+      const sekolahEl = document.getElementById('satuanPendidikan');
+      if (!sekolahEl.value.trim()) sekolahEl.value = 'SDN 01 Harapan Bangsa';
+
+      const tempatEl = document.getElementById('tempatPengesahan');
+      if (!tempatEl.value.trim()) tempatEl.value = 'Semarang';
+
+      document.getElementById('tujuanPembelajaran').value = faseDef.contohTp;
+      updateCpAutoHelper();
+      saveIdentityProfile();
+      hideError();
+    }
+
+    function handleResetForm() {
+      selectFase('B');
+      switchMetodeToList();
+      state.dplPilihan = [];
+      renderDplButtons();
+
+      document.getElementById('namaGuru').value = '';
+      document.getElementById('nipGuru').value = '';
+      document.getElementById('namaKepalaSekolah').value = '';
+      document.getElementById('nipKepalaSekolah').value = '';
+      document.getElementById('satuanPendidikan').value = '';
+      document.getElementById('tempatPengesahan').value = '';
+      document.getElementById('jumlahPertemuan').value = '1';
+      document.getElementById('mataPelajaran').value = '';
+      document.getElementById('tujuanPembelajaran').value = '';
+
+      updateCpAutoHelper();
+      state.modul = null;
+      state.activeTab = 'all';
+      hideError();
+      updateWorkspaceState();
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('errorAlert');
+      document.getElementById('errorAlertText').textContent = msg;
+      box.classList.remove('hidden');
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideError() {
+      document.getElementById('errorAlert').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // SCHEMA & PROMPT PEMBENTUKAN MODUL AJAR + CP OTOMATIS
+    // =========================================================================
+    const MODUL_RESPONSE_SCHEMA = {
+      type: 'OBJECT',
+      properties: {
+        informasi_umum: {
+          type: 'OBJECT',
+          properties: {
+            judul_modul: { type: 'STRING' },
+            identitas: {
+              type: 'OBJECT',
+              properties: {
+                nama_penyusun: { type: 'STRING' },
+                nip_penyusun: { type: 'STRING' },
+                satuan_pendidikan: { type: 'STRING' },
+                tahun_ajaran: { type: 'STRING' },
+                jenjang_kelas_fase: { type: 'STRING' },
+                mata_pelajaran: { type: 'STRING' },
+                topik_materi: { type: 'STRING' },
+                alokasi_waktu: { type: 'STRING' },
+                jumlah_pertemuan: { type: 'STRING' },
+              },
+              required: [
+                'nama_penyusun', 'nip_penyusun', 'satuan_pendidikan', 'tahun_ajaran',
+                'jenjang_kelas_fase', 'mata_pelajaran', 'topik_materi', 'alokasi_waktu', 'jumlah_pertemuan',
+              ],
+            },
+            capaian_pembelajaran: {
+              type: 'OBJECT',
+              properties: {
+                elemen_cp: { type: 'STRING' },
+                rumusan_cp: { type: 'STRING' },
+                keterkaitan_tp_dan_cp: { type: 'STRING' },
+              },
+              required: ['elemen_cp', 'rumusan_cp', 'keterkaitan_tp_dan_cp'],
+            },
+            kompetensi_awal: { type: 'STRING' },
+            dimensi_profil_lulusan: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  dimensi: { type: 'STRING' },
+                  relevansi_materi: { type: 'STRING' },
+                  implementasi_pembelajaran: { type: 'STRING' },
+                },
+                required: ['dimensi', 'relevansi_materi', 'implementasi_pembelajaran'],
+              },
+            },
+            sarana_dan_prasarana: { type: 'ARRAY', items: { type: 'STRING' } },
+            target_peserta_didik: { type: 'STRING' },
+            pendekatan_dan_metode: {
+              type: 'OBJECT',
+              properties: {
+                pendekatan: { type: 'STRING' },
+                metode_utama: { type: 'STRING' },
+                prinsip_pembelajaran_mendalam: {
+                  type: 'OBJECT',
+                  properties: {
+                    berkesadaran: { type: 'STRING' },
+                    bermakna: { type: 'STRING' },
+                    menggembirakan: { type: 'STRING' },
+                  },
+                  required: ['berkesadaran', 'bermakna', 'menggembirakan'],
+                },
+              },
+              required: ['pendekatan', 'metode_utama', 'prinsip_pembelajaran_mendalam'],
+            },
+          },
+          required: [
+            'judul_modul', 'identitas', 'capaian_pembelajaran', 'kompetensi_awal',
+            'dimensi_profil_lulusan', 'sarana_dan_prasarana', 'target_peserta_didik', 'pendekatan_dan_metode',
+          ],
+        },
+        kegiatan_inti: {
+          type: 'OBJECT',
+          properties: {
+            tujuan_pembelajaran: { type: 'STRING' },
+            pemahaman_bermakna: { type: 'STRING' },
+            pertanyaan_pemantik: { type: 'ARRAY', items: { type: 'STRING' } },
+            persiapan_pembelajaran: { type: 'ARRAY', items: { type: 'STRING' } },
+            kegiatan_pembelajaran: {
+              type: 'OBJECT',
+              properties: {
+                daftar_pertemuan: {
+                  type: 'ARRAY',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      pertemuan_ke: { type: 'INTEGER' },
+                      sub_topik_pertemuan: { type: 'STRING' },
+                      alokasi_waktu_pertemuan: { type: 'STRING' },
+                      pendahuluan: {
+                        type: 'OBJECT',
+                        properties: {
+                          durasi: { type: 'STRING' },
+                          prinsip_fokus: { type: 'STRING' },
+                          langkah: { type: 'ARRAY', items: { type: 'STRING' } },
+                        },
+                        required: ['durasi', 'prinsip_fokus', 'langkah'],
+                      },
+                      inti: {
+                        type: 'OBJECT',
+                        properties: {
+                          durasi: { type: 'STRING' },
+                          sintaks_model: {
+                            type: 'ARRAY',
+                            items: {
+                              type: 'OBJECT',
+                              properties: {
+                                tahap: { type: 'STRING' },
+                                pengalaman_belajar: { type: 'STRING' },
+                                prinsip_diterapkan: { type: 'STRING' },
+                                aktivitas: { type: 'ARRAY', items: { type: 'STRING' } },
+                              },
+                              required: ['tahap', 'pengalaman_belajar', 'prinsip_diterapkan', 'aktivitas'],
+                            },
+                          },
+                        },
+                        required: ['durasi', 'sintaks_model'],
+                      },
+                      penutup: {
+                        type: 'OBJECT',
+                        properties: {
+                          durasi: { type: 'STRING' },
+                          prinsip_fokus: { type: 'STRING' },
+                          langkah: { type: 'ARRAY', items: { type: 'STRING' } },
+                        },
+                        required: ['durasi', 'prinsip_fokus', 'langkah'],
+                      },
+                    },
+                    required: [
+                      'pertemuan_ke', 'sub_topik_pertemuan', 'alokasi_waktu_pertemuan',
+                      'pendahuluan', 'inti', 'penutup',
+                    ],
+                  },
+                },
+              },
+              required: ['daftar_pertemuan'],
+            },
+            refleksi_guru: { type: 'ARRAY', items: { type: 'STRING' } },
+            refleksi_peserta_didik: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: [
+            'tujuan_pembelajaran', 'pemahaman_bermakna', 'pertanyaan_pemantik',
+            'persiapan_pembelajaran', 'kegiatan_pembelajaran', 'refleksi_guru', 'refleksi_peserta_didik',
+          ],
+        },
+        bahan_ajar: {
+          type: 'OBJECT',
+          properties: {
+            judul_materi: { type: 'STRING' },
+            uraian_materi: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  sub_topik: { type: 'STRING' },
+                  penjelasan: { type: 'STRING' },
+                },
+                required: ['sub_topik', 'penjelasan'],
+              },
+            },
+            contoh_kontekstual: { type: 'STRING' },
+            glosarium: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  istilah: { type: 'STRING' },
+                  arti: { type: 'STRING' },
+                },
+                required: ['istilah', 'arti'],
+              },
+            },
+            daftar_pustaka: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: ['judul_materi', 'uraian_materi', 'contoh_kontekstual', 'glosarium', 'daftar_pustaka'],
+        },
+        lkpd: {
+          type: 'OBJECT',
+          properties: {
+            judul_lkpd: { type: 'STRING' },
+            subjudul_tema: { type: 'STRING' },
+            identitas_siswa: { type: 'STRING' },
+            estimasi_waktu: { type: 'STRING' },
+            konteks_masalah: { type: 'STRING' },
+            tujuan_lkpd: { type: 'STRING' },
+            visual_kontekstual: {
+              type: 'OBJECT',
+              properties: {
+                judul_bagan: { type: 'STRING' },
+                keterangan_visual: { type: 'STRING' },
+                tahapan_atau_poin: {
+                  type: 'ARRAY',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      label: { type: 'STRING' },
+                      deskripsi_singkat: { type: 'STRING' },
+                    },
+                    required: ['label', 'deskripsi_singkat'],
+                  },
+                },
+              },
+              required: ['judul_bagan', 'keterangan_visual', 'tahapan_atau_poin'],
+            },
+            petunjuk_pengerjaan: { type: 'ARRAY', items: { type: 'STRING' } },
+            alat_dan_bahan: { type: 'ARRAY', items: { type: 'STRING' } },
+            langkah_kegiatan_dan_soal: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  nomor: { type: 'INTEGER' },
+                  pertemuan_ke: { type: 'INTEGER' },
+                  tahap_pengalaman: { type: 'STRING' },
+                  judul_aktivitas: { type: 'STRING' },
+                  instruksi_atau_pertanyaan: { type: 'STRING' },
+                  jenis_respon: { type: 'STRING' },
+                  panduan_jawaban_guru: { type: 'STRING' },
+                },
+                required: [
+                  'nomor', 'pertemuan_ke', 'tahap_pengalaman', 'judul_aktivitas',
+                  'instruksi_atau_pertanyaan', 'jenis_respon', 'panduan_jawaban_guru',
+                ],
+              },
+            },
+            tabel_pengamatan: {
+              type: 'OBJECT',
+              properties: {
+                judul_tabel: { type: 'STRING' },
+                kolom_header: { type: 'ARRAY', items: { type: 'STRING' } },
+                jumlah_baris_kosong: { type: 'INTEGER' },
+              },
+              required: ['judul_tabel', 'kolom_header', 'jumlah_baris_kosong'],
+            },
+            refleksi_siswa_lkpd: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: [
+            'judul_lkpd', 'subjudul_tema', 'identitas_siswa', 'estimasi_waktu',
+            'konteks_masalah', 'tujuan_lkpd', 'visual_kontekstual', 'petunjuk_pengerjaan',
+            'alat_dan_bahan', 'langkah_kegiatan_dan_soal', 'tabel_pengamatan', 'refleksi_siswa_lkpd',
+          ],
+        },
+        media_pembelajaran: {
+          type: 'OBJECT',
+          properties: {
+            daftar_media: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  nama_media: { type: 'STRING' },
+                  jenis: { type: 'STRING' },
+                  fungsi_dan_cara_pakai: { type: 'STRING' },
+                },
+                required: ['nama_media', 'jenis', 'fungsi_dan_cara_pakai'],
+              },
+            },
+            rancangan_visual_atau_slide: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: ['daftar_media', 'rancangan_visual_atau_slide'],
+        },
+        asesmen: {
+          type: 'OBJECT',
+          properties: {
+            asesmen_diagnostik: {
+              type: 'OBJECT',
+              properties: {
+                non_kognitif: { type: 'ARRAY', items: { type: 'STRING' } },
+                kognitif: { type: 'ARRAY', items: { type: 'STRING' } },
+              },
+              required: ['non_kognitif', 'kognitif'],
+            },
+            asesmen_formatif: {
+              type: 'OBJECT',
+              properties: {
+                teknik_dan_instrumen: { type: 'STRING' },
+                indikator_pengamatan: { type: 'ARRAY', items: { type: 'STRING' } },
+              },
+              required: ['teknik_dan_instrumen', 'indikator_pengamatan'],
+            },
+            asesmen_sumatif: {
+              type: 'OBJECT',
+              properties: {
+                soal_evaluasi: {
+                  type: 'ARRAY',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      nomor: { type: 'INTEGER' },
+                      pertanyaan: { type: 'STRING' },
+                      kunci_jawaban: { type: 'STRING' },
+                    },
+                    required: ['nomor', 'pertanyaan', 'kunci_jawaban'],
+                  },
+                },
+              },
+              required: ['soal_evaluasi'],
+            },
+            rubrik_penilaian: {
+              type: 'ARRAY',
+              items: {
+                type: 'OBJECT',
+                properties: {
+                  aspek: { type: 'STRING' },
+                  perlu_bimbingan: { type: 'STRING' },
+                  cukup: { type: 'STRING' },
+                  baik: { type: 'STRING' },
+                  sangat_baik: { type: 'STRING' },
+                },
+                required: ['aspek', 'perlu_bimbingan', 'cukup', 'baik', 'sangat_baik'],
+              },
+            },
+            pengayaan: { type: 'STRING' },
+            remedial: { type: 'STRING' },
+          },
+          required: [
+            'asesmen_diagnostik', 'asesmen_formatif', 'asesmen_sumatif',
+            'rubrik_penilaian', 'pengayaan', 'remedial',
+          ],
+        },
+      },
+      required: ['informasi_umum', 'kegiatan_inti', 'bahan_ajar', 'lkpd', 'media_pembelajaran', 'asesmen'],
+    };
+
+    function buildUserPrompt(input) {
+      const metodePilihan = input.metodePembelajaran || 'Problem Based Learning (PBL)';
+      const dplNames = input.dplPilihan
+        .map((code) => {
+          const found = DIMENSI_PROFIL_LULUSAN.find((d) => d.code === code);
+          return found ? found.nama : code;
+        })
+        .filter(Boolean);
+
+      const dplInstruction =
+        dplNames.length > 0
+          ? `Gunakan Dimensi Profil Lulusan (DPL) berikut yang telah dipilih guru dan jelaskan relevansi serta implementasinya pada materi ini: ${dplNames.join(', ')}.`
+          : `Pilih secara tepat 3 sampai 4 Dimensi Profil Lulusan (DPL) yang PALING RELEVAN dengan materi pelajaran dan Tujuan Pembelajaran dari 8 DPL resmi (Keimanan dan Ketakwaan terhadap Tuhan YME, Kewargaan, Penalaran Kritis, Kreativitas, Kolaborasi, Kemandirian, Kesehatan, Komunikasi).`;
+
+      const jenjangKelasFase = `${input.kelas} (Fase ${input.fase})`;
+
+      return `Susunlah sebuah MODUL AJAR KURIKULUM MERDEKA berbasis **PENDEKATAN PEMBELAJARAN MENDALAM (Deep Learning)** yang lengkap, operasional, dan sangat kontekstual berdasarkan data berikut:
+- Nama Guru / Penyusun: ${input.namaGuru}
+- NIP Guru / Penyusun: ${input.nipGuru || '-'}
+- Satuan Pendidikan: ${input.satuanPendidikan || '[Nama Satuan Pendidikan]'}
+- Tahun Ajaran: ${input.tahunAjaran || '2026/2027'}
+- Jenjang / Kelas / Fase: ${jenjangKelasFase}
+- Mata Pelajaran: ${input.mataPelajaran || '(Tentukan secara tepat berdasarkan Tujuan Pembelajaran dan Fase/Kelas)'}
+- Model / Metode Pembelajaran Pilihan Guru: ${metodePilihan}
+- Total Alokasi Waktu / Jumlah JP: ${input.jumlahJp}
+- Jumlah Pertemuan: ${input.jumlahPertemuan} Pertemuan
+- Tujuan Pembelajaran (TP): ${input.tujuanPembelajaran}
+
+KETENTUAN UTAMA PENYUSUNAN:
+1. **Perumusan Capaian Pembelajaran (CP) Otomatis dari TP dan Fase (${jenjangKelasFase})**:
+   - WAJIB mengisi objek \`informasi_umum.capaian_pembelajaran\` secara akurat sesuai dokumen Capaian Pembelajaran Kurikulum Merdeka (BSKAP Kemendikdasmen) untuk **Fase ${input.fase}** (${input.kelas}) dan mata pelajaran terkait:
+     * \`elemen_cp\`: Nama elemen CP resmi yang sesuai dengan materi dan TP.
+     * \`rumusan_cp\`: Teks rumusan Capaian Pembelajaran (CP) resmi pada Fase ${input.fase} yang menjadi payung kompetensi dari Tujuan Pembelajaran (TP) di atas.
+     * \`keterkaitan_tp_dan_cp\`: Penjelasan ringkas bagaimana Tujuan Pembelajaran (TP) yang diinput guru menurunkan dan mencerminkan pencapaian kompetensi pada CP Fase ${input.fase}.
+2. **Pembagian Rencana Pembelajaran ke Dalam ${input.jumlahPertemuan} Pertemuan**:
+   - WAJIB menyusun \`kegiatan_pembelajaran.daftar_pertemuan\` sebanyak tepat **${input.jumlahPertemuan} objek pertemuan** (\`pertemuan_ke\`: 1 sampai ${input.jumlahPertemuan}).
+   - Bagi total alokasi waktu (**${input.jumlahJp}**) secara proporsional ke dalam \`alokasi_waktu_pertemuan\` pada masing-masing pertemuan.
+   - Setiap pertemuan WAJIB memiliki rangkaian lengkap **Pendahuluan**, **Kegiatan Inti (sintaks_model)**, dan **Penutup**.
+3. **Dimensi Profil Lulusan (DPL)**: ${dplInstruction}
+4. **Prinsip Pembelajaran Mendalam**: Rancang penerapan nyata prinsip **Berkesadaran (Mindful)**, **Bermakna (Meaningful)**, dan **Menggembirakan (Joyful)**.
+5. **Metode Pembelajaran Pilihan Guru (${metodePilihan})**:
+   - Terapkan sintaks asli **${metodePilihan}** pada \`sintaks_model\` dan pasangkan setiap tahap dengan pengalaman belajar (**Memahami**, **Mengaplikasi**, atau **Merefleksi**).
+6. **LKPD Kontekstual, Bahan Ajar & Asesmen Lengkap**:
+   - Buat \`konteks_masalah\`, \`visual_kontekstual\` (3–5 poin bagan alur), minimal ${Math.max(4, input.jumlahPertemuan * 2)} aktivitas LKPD progresif, \`tabel_pengamatan\`, dan \`refleksi_siswa_lkpd\`.
+   - Sediakan Bahan Ajar minimal 3 sub-topik, contoh kontekstual, glosarium, daftar pustaka, serta Asesmen lengkap (Diagnostik, Formatif, minimal 5 soal Sumatif HOTS + kunci jawaban, Rubrik 4 level, Pengayaan & Remedial).`;
+    }
+
+    function parseGeminiJson(rawText) {
+      let cleaned = rawText.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+      }
+      return JSON.parse(cleaned);
+    }
+
+    function isModelUnavailableError(status, message) {
+      if (status === 404) return true;
+      return /no longer available|not found|not supported for generatecontent|deprecated|unknown model/i.test(
+        String(message || '')
+      );
+    }
+
+    async function findFallbackModel(apiKey, failedModel) {
+      try {
+        const cleanKey = sanitizeApiKey(apiKey);
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`);
+        const data = await resp.json();
+        if (!resp.ok || !Array.isArray(data.models)) return 'gemini-2.5-flash-lite';
+        const candidates = data.models
+          .filter((m) => {
+            const methods = Array.isArray(m.supportedGenerationMethods) ? m.supportedGenerationMethods : [];
+            const id = (m.name || '').replace(/^models\//i, '').toLowerCase();
+            return (
+              methods.includes('generateContent') &&
+              id.startsWith('gemini-') &&
+              id !== failedModel.toLowerCase() &&
+              !/embedding|imagen|veo|aqa|tts|robotics|computer-use|deep-research|audio|live/i.test(id)
+            );
+          })
+          .map((m) => (m.name || '').replace(/^models\//i, ''));
+        return candidates.find((id) => id.includes('flash')) || candidates[0] || 'gemini-2.5-flash-lite';
+      } catch (_) {
+        return 'gemini-2.5-flash-lite';
+      }
+    }
+
+    async function requestGenerateContent(apiKey, modelId, payload) {
+      const cleanKey = sanitizeApiKey(apiKey);
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+        modelId
+      )}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      return { response, result };
+    }
+
+    document.getElementById('modulForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const input = getCurrentFormInput();
+      const apiKeyInputEl = document.getElementById('apiKeyInput');
+      const apiKey = sanitizeApiKey(apiKeyInputEl.value);
+      apiKeyInputEl.value = apiKey;
+
+      if (
+        !input.namaGuru ||
+        !input.kelas ||
+        !input.jumlahJp ||
+        !input.metodePembelajaran ||
+        !input.tujuanPembelajaran
+      ) {
+        showError(
+          'Harap lengkapi Nama Guru, Fase/Kelas, Metode Pembelajaran, Alokasi Waktu (JP), dan Tujuan Pembelajaran (TP).'
+        );
+        return;
+      }
+
+      if (!apiKey) {
+        showError('Harap masukkan Kunci Akses / API Key Anda pada bagian 3 sebelum menekan Generate Modul Ajar.');
+        apiKeyInputEl.focus();
+        return;
+      }
+
+      if (document.getElementById('saveApiKeyCheck').checked) {
+        localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+      }
+
+      state.isLoading = true;
+      updateWorkspaceState(input);
+      scrollToElement('bagian-pratinjau');
+
+      const requestPayload = {
+        systemInstruction: {
+          parts: [
+            {
+              text: 'Anda adalah pakar perancang perangkat ajar Kurikulum Merdeka dan Pendekatan Pembelajaran Mendalam (Deep Learning) Kemendikdasmen Indonesia. Susun modul ajar yang merumuskan Capaian Pembelajaran (CP) secara otomatis dan akurat sesuai Fase dan Tujuan Pembelajaran (TP), mengintegrasikan 8 Dimensi Profil Lulusan (DPL), prinsip Berkesadaran-Bermakna-Menggembirakan, pengalaman belajar Memahami-Mengaplikasi-Merefleksi, sintaks metode pembelajaran pilihan guru, dan LKPD kontekstual yang menarik.',
+            },
+          ],
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: buildUserPrompt(input) }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: MODUL_RESPONSE_SCHEMA,
+          temperature: 0.65,
+          maxOutputTokens: 32768,
+        },
+      };
+
+      try {
+        let activeModel = DEFAULT_MODEL_ID;
+        let { response, result } = await requestGenerateContent(apiKey, activeModel, requestPayload);
+
+        // Pemulihan otomatis diam-diam jika server padat atau versi model berubah
+        if (!response.ok) {
+          const initialErr = result?.error?.message || `HTTP Error ${response.status}`;
+          if (isModelUnavailableError(response.status, initialErr) || response.status === 503) {
+            const fallbackModel = await findFallbackModel(apiKey, activeModel);
+            if (fallbackModel && fallbackModel !== activeModel) {
+              activeModel = fallbackModel;
+              ({ response, result } = await requestGenerateContent(apiKey, activeModel, requestPayload));
+            }
+          }
+        }
+
+        if (!response.ok) {
+          const apiErr = result?.error?.message || `HTTP Error ${response.status}`;
+          if (response.status === 503) {
+            throw new Error(
+              'Server sedang sibuk. Silakan tunggu beberapa detik lalu klik kembali Generate Modul Ajar.'
+            );
+          }
+          throw new Error(apiErr);
+        }
+
+        const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) {
+          throw new Error('Respons kosong atau terpotong. Silakan klik Generate Modul Ajar kembali.');
+        }
+
+        state.modul = parseGeminiJson(rawText);
+        state.activeTab = 'all';
+        renderPreviewTabs();
+      } catch (err) {
+        console.error('Error generating modul ajar:', err);
+        showError(formatFetchErrorMessage(err));
+      } finally {
+        state.isLoading = false;
+        updateWorkspaceState();
+        if (state.modul) {
+          scrollToElement('bagian-pratinjau');
+        }
+      }
+    });
+
+    // =========================================================================
+    // RENDER PRATINJAU DOKUMEN
+    // =========================================================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderFormattedText(text) {
+      if (text === null || text === undefined || text === '') return '-';
+      const escaped = escapeHtml(text);
+      return escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-slate-900">$1</strong>');
+    }
+
+    function renderBulletList(items) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return '<p class="text-sm text-slate-500">-</p>';
+      }
+      return `<ul class="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-700">${items
+        .map((item) => `<li>${renderFormattedText(item)}</li>`)
+        .join('')}</ul>`;
+    }
+
+    function renderPreviewTabs() {
+      const bar = document.getElementById('previewTabsBar');
+      bar.innerHTML = PREVIEW_TABS.map((tab) => {
+        const active = state.activeTab === tab.id;
+        return `
+          <button
+            type="button"
+            role="tab"
+            aria-selected="${active}"
+            onclick="selectPreviewTab('${tab.id}')"
+            class="shrink-0 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+              active
+                ? 'bg-teal-700 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-white hover:text-slate-900'
+            }"
+          >
+            ${tab.label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectPreviewTab(tabId) {
+      state.activeTab = tabId;
+      renderPreviewTabs();
+      renderDocument();
+    }
+
+    function toggleTeacherKeyInLkpd() {
+      state.showTeacherKeyInLkpd = !state.showTeacherKeyInLkpd;
+      renderDocument();
+    }
+
+    function updateWorkspaceState(pendingInput) {
+      const submitBtn = document.getElementById('submitBtn');
+      const submitBtnContent = document.getElementById('submitBtnContent');
+      const resetBtn = document.getElementById('resetBtn');
+      const headerExportWordBtn = document.getElementById('headerExportWordBtn');
+      const previewExportWordBtn = document.getElementById('previewExportWordBtn');
+      const copyTextBtn = document.getElementById('copyTextBtn');
+      const printBtn = document.getElementById('printBtn');
+      const tabsBar = document.getElementById('previewTabsBar');
+      const emptyView = document.getElementById('emptyStateView');
+      const loadingView = document.getElementById('loadingStateView');
+      const docArticle = document.getElementById('documentArticle');
+      const previewSubtitle = document.getElementById('previewSubtitle');
+
+      submitBtn.disabled = state.isLoading;
+      resetBtn.disabled = state.isLoading;
+
+      if (state.isLoading) {
+        submitBtnContent.innerHTML = `<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Sedang Menyusun...`;
+        const metodeText = pendingInput?.metodePembelajaran || 'Pembelajaran Mendalam';
+        const pertemuanCount = pendingInput?.jumlahPertemuan || 1;
+        document.getElementById('loadingStatusText').textContent =
+          `Sedang merumuskan Capaian Pembelajaran (CP) Fase ${pendingInput?.fase || state.fase}, Modul ${pertemuanCount} Pertemuan (${metodeText}), dan LKPD Kontekstual...`;
+        emptyView.classList.add('hidden');
+        docArticle.classList.add('hidden');
+        tabsBar.classList.add('hidden');
+        tabsBar.classList.remove('flex');
+        loadingView.classList.remove('hidden');
+
+        headerExportWordBtn.disabled = true;
+        previewExportWordBtn.disabled = true;
+        copyTextBtn.disabled = true;
+        printBtn.disabled = true;
+        return;
+      }
+
+      submitBtnContent.innerHTML = `<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>Generate Modul Ajar`;
+      loadingView.classList.add('hidden');
+
+      if (!state.modul) {
+        emptyView.classList.remove('hidden');
+        docArticle.classList.add('hidden');
+        tabsBar.classList.add('hidden');
+        tabsBar.classList.remove('flex');
+        previewSubtitle.textContent =
+          'Otomatis memuat Capaian Pembelajaran (CP), Pembelajaran Mendalam, 8 DPL & LKPD Kontekstual';
+
+        headerExportWordBtn.disabled = true;
+        previewExportWordBtn.disabled = true;
+        copyTextBtn.disabled = true;
+        printBtn.disabled = true;
+      } else {
+        emptyView.classList.add('hidden');
+        docArticle.classList.remove('hidden');
+        tabsBar.classList.remove('hidden');
+        tabsBar.classList.add('flex');
+
+        headerExportWordBtn.disabled = false;
+        previewExportWordBtn.disabled = false;
+        copyTextBtn.disabled = false;
+        printBtn.disabled = false;
+
+        renderDocument();
+      }
+    }
+
+    function renderDocument() {
+      const modul = state.modul;
+      if (!modul) return;
+
+      const formInput = getCurrentFormInput();
+      const showSection = (id) => state.activeTab === 'all' || state.activeTab === id;
+
+      const info = modul.informasi_umum || {};
+      const idn = info.identitas || {};
+      const cp = info.capaian_pembelajaran || {};
+      const keg = modul.kegiatan_inti || {};
+      const kp = keg.kegiatan_pembelajaran || {};
+      const bahan = modul.bahan_ajar || {};
+      const lkpd = modul.lkpd || {};
+      const media = modul.media_pembelajaran || {};
+      const ases = modul.asesmen || {};
+
+      const namaGuru = formInput.namaGuru || idn.nama_penyusun || '-';
+      const nipGuru = formInput.nipGuru || idn.nip_penyusun || '-';
+      const namaKepsek = formInput.namaKepalaSekolah || '............................................';
+      const nipKepsek = formInput.nipKepalaSekolah || '............................................';
+      const satuanPendidikan = formInput.satuanPendidikan || idn.satuan_pendidikan || 'Sekolah';
+      const tempat = formInput.tempatPengesahan || '........................';
+      const tanggalLengkap = `${formInput.tanggalPengesahan} ${formInput.bulanPengesahan} ${formInput.tahunPengesahan}`;
+      const metodeLabel = info.pendekatan_dan_metode?.metode_utama || formInput.metodePembelajaran;
+
+      const jumlahPertemuanLabel = `${formInput.jumlahPertemuan} Pertemuan`;
+      document.getElementById('previewSubtitle').textContent =
+        `${formInput.kelas} • Fase ${formInput.fase} • ${metodeLabel} • ${formInput.jumlahJp} (${jumlahPertemuanLabel})`;
+
+      const visualNodes = lkpd.visual_kontekstual?.tahapan_atau_poin || [];
+      const obsHeaders = lkpd.tabel_pengamatan?.kolom_header || [];
+      const obsBlankRows = Math.min(Math.max(lkpd.tabel_pengamatan?.jumlah_baris_kosong || 4, 2), 6);
+
+      let html = `
+        <!-- Header Dokumen Resmi -->
+        <header class="border-b-2 border-slate-800 pb-5 text-center">
+          <p class="text-xs font-semibold tracking-widest text-teal-800 uppercase">
+            Modul Ajar Kurikulum Merdeka &bull; Pembelajaran Mendalam
+          </p>
+          <h1 class="mt-1.5 text-xl font-bold text-slate-900 sm:text-2xl">
+            ${escapeHtml(info.judul_modul || 'Perangkat Ajar Pembelajaran')}
+          </h1>
+          <div class="mt-2 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xs text-slate-600">
+            <span>${escapeHtml(satuanPendidikan)}</span>
+            <span aria-hidden="true">&bull;</span>
+            <span>${escapeHtml(formInput.kelas)} (Fase ${escapeHtml(formInput.fase)})</span>
+            <span aria-hidden="true">&bull;</span>
+            <span>${escapeHtml(metodeLabel)}</span>
+            <span aria-hidden="true">&bull;</span>
+            <span class="font-mono tabular-nums">${escapeHtml(formInput.jumlahJp)}</span>
+            <span aria-hidden="true">&bull;</span>
+            <span class="font-mono font-semibold text-teal-800 tabular-nums">${escapeHtml(jumlahPertemuanLabel)}</span>
+          </div>
+        </header>
+      `;
+
+      // A. INFORMASI UMUM & CAPAIAN PEMBELAJARAN OTOMATIS
+      if (showSection('info')) {
+        const identitasRows = [
+          ['Nama Penyusun / Guru', namaGuru, false],
+          ['NIP Penyusun / Guru', nipGuru, true],
+          ['Satuan Pendidikan', satuanPendidikan, false],
+          ['Tahun Ajaran', formInput.tahunAjaran || idn.tahun_ajaran || '2026/2027', true],
+          ['Jenjang / Kelas / Fase', `${formInput.kelas} (Fase ${formInput.fase})`, false],
+          ['Mata Pelajaran', formInput.mataPelajaran || idn.mata_pelajaran, false],
+          ['Topik / Materi Pokok', idn.topik_materi, false],
+          ['Alokasi Waktu', formInput.jumlahJp || idn.alokasi_waktu, true],
+          ['Jumlah Pertemuan', jumlahPertemuanLabel, true],
+          [
+            'Pendekatan & Metode',
+            `${info.pendekatan_dan_metode?.pendekatan || 'Pembelajaran Mendalam (Deep Learning)'} — ${metodeLabel}`,
+            false,
+          ],
+        ];
+
+        const dplRowsHtml = (info.dimensi_profil_lulusan || [])
+          .map(
+            (dpl) => `
+            <tr class="border border-slate-200 align-top">
+              <td class="bg-slate-50/70 px-3.5 py-2.5 text-xs font-semibold text-teal-900">${escapeHtml(dpl.dimensi)}</td>
+              <td class="px-3.5 py-2.5 text-xs leading-relaxed text-slate-700">${renderFormattedText(dpl.relevansi_materi)}</td>
+              <td class="px-3.5 py-2.5 text-xs leading-relaxed text-slate-700">${renderFormattedText(dpl.implementasi_pembelajaran)}</td>
+            </tr>`
+          )
+          .join('');
+
+        const prinsipCards = [
+          {
+            title: 'Berkesadaran (Mindful)',
+            text: info.pendekatan_dan_metode?.prinsip_pembelajaran_mendalam?.berkesadaran,
+          },
+          {
+            title: 'Bermakna (Meaningful)',
+            text: info.pendekatan_dan_metode?.prinsip_pembelajaran_mendalam?.bermakna,
+          },
+          {
+            title: 'Menggembirakan (Joyful)',
+            text: info.pendekatan_dan_metode?.prinsip_pembelajaran_mendalam?.menggembirakan,
+          },
+        ]
+          .map(
+            (pr) => `
+            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5">
+              <p class="text-xs font-bold text-teal-900">${pr.title}</p>
+              <p class="mt-1 text-xs leading-relaxed text-slate-700">${renderFormattedText(pr.text)}</p>
+            </div>`
+          )
+          .join('');
+
+        html += `
+          <section class="space-y-5">
+            <h2 class="border-b border-slate-200 pb-2 text-base font-bold text-teal-900">
+              A. INFORMASI UMUM &amp; CAPAIAN PEMBELAJARAN (CP)
+            </h2>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-sm">
+                <tbody>
+                  ${identitasRows
+                    .map(
+                      ([label, val, mono]) => `
+                    <tr class="border border-slate-200">
+                      <th class="w-1/3 bg-slate-50 px-3.5 py-2 text-left text-xs font-semibold text-slate-700">${escapeHtml(label)}</th>
+                      <td class="px-3.5 py-2 text-sm text-slate-900 ${mono ? 'font-mono tabular-nums' : ''}">${escapeHtml(val || '-')}</td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- KARTU HASIL CAPAIAN PEMBELAJARAN (CP) OTOMATIS -->
+            <div class="rounded-xl border border-teal-300 bg-teal-50/60 p-4 sm:p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-teal-200/80 pb-2.5">
+                <div>
+                  <span class="text-xs font-bold tracking-wide text-teal-900 uppercase">
+                    Capaian Pembelajaran (CP) &mdash; Fase ${escapeHtml(formInput.fase)}
+                  </span>
+                  ${
+                    cp.elemen_cp
+                      ? `<p class="mt-0.5 text-xs font-semibold text-teal-800">Elemen: ${escapeHtml(cp.elemen_cp)}</p>`
+                      : ''
+                  }
+                </div>
+                <span class="rounded-full bg-teal-700 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                  Otomatis dari Fase &amp; TP
+                </span>
+              </div>
+              <p class="mt-3 text-sm leading-relaxed text-slate-800">
+                ${renderFormattedText(cp.rumusan_cp || '-')}
+              </p>
+              ${
+                cp.keterkaitan_tp_dan_cp
+                  ? `<div class="mt-3 rounded-lg border border-teal-200/70 bg-white/80 px-3.5 py-2.5 text-xs leading-relaxed text-slate-700">
+                      <span class="font-bold text-teal-900">Keselarasan CP &rarr; TP:</span> ${renderFormattedText(cp.keterkaitan_tp_dan_cp)}
+                    </div>`
+                  : ''
+              }
+            </div>
+
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">1. Kompetensi Awal</h3>
+              <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(info.kompetensi_awal)}</p>
+            </div>
+
+            <div>
+              <h3 class="mb-2 text-sm font-semibold text-slate-900">2. Dimensi Profil Lulusan (DPL) yang Dikembangkan</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                  <thead>
+                    <tr class="border border-slate-200 bg-slate-100">
+                      <th class="w-1/4 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Dimensi Profil Lulusan</th>
+                      <th class="w-3/8 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Relevansi dengan Materi</th>
+                      <th class="w-3/8 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Implementasi di Kelas</th>
+                    </tr>
+                  </thead>
+                  <tbody>${dplRowsHtml}</tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">3. Sarana dan Prasarana</h3>
+                <div class="mt-1">${renderBulletList(info.sarana_dan_prasarana)}</div>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">4. Target Peserta Didik</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(info.target_peserta_didik)}</p>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="mb-2 text-sm font-semibold text-slate-900">5. Prinsip Pembelajaran Mendalam</h3>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-3">${prinsipCards}</div>
+            </div>
+          </section>
+        `;
+      }
+
+      // B. KOMPONEN & KEGIATAN INTI
+      if (showSection('kegiatan')) {
+        const daftarPertemuan =
+          Array.isArray(kp.daftar_pertemuan) && kp.daftar_pertemuan.length > 0
+            ? kp.daftar_pertemuan
+            : [
+                {
+                  pertemuan_ke: 1,
+                  sub_topik_pertemuan: idn.topik_materi || 'Kegiatan Pembelajaran',
+                  alokasi_waktu_pertemuan: formInput.jumlahJp || idn.alokasi_waktu || '-',
+                  pendahuluan: kp.pendahuluan,
+                  inti: kp.inti,
+                  penutup: kp.penutup,
+                },
+              ];
+
+        const pertemuanTablesHtml = daftarPertemuan
+          .map((pert, idx) => {
+            const nomorPertemuan = pert.pertemuan_ke || idx + 1;
+            const sintaksHtml = (pert.inti?.sintaks_model || [])
+              .map(
+                (s) => `
+                <div class="border-b border-dashed border-slate-200 pb-3 last:border-b-0 last:pb-0">
+                  <div class="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+                    <p class="text-sm font-semibold text-slate-900">${escapeHtml(s.tahap)}</p>
+                    <span class="text-xs font-medium text-teal-800">${escapeHtml(s.pengalaman_belajar)} &bull; ${escapeHtml(s.prinsip_diterapkan)}</span>
+                  </div>
+                  ${renderBulletList(s.aktivitas)}
+                </div>`
+              )
+              .join('');
+
+            return `
+              <div class="space-y-2.5 ${idx > 0 ? 'pt-3' : ''}">
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal-200 bg-teal-50/70 px-3.5 py-2.5">
+                  <div>
+                    <span class="inline-block rounded-md bg-teal-700 px-2 py-0.5 font-mono text-[11px] font-bold text-white">
+                      PERTEMUAN KE-${nomorPertemuan}
+                    </span>
+                    <span class="ml-2 text-sm font-semibold text-slate-900">
+                      ${escapeHtml(pert.sub_topik_pertemuan || idn.topik_materi || '')}
+                    </span>
+                  </div>
+                  <span class="font-mono text-xs font-semibold tabular-nums text-teal-900">
+                    Alokasi: ${escapeHtml(pert.alokasi_waktu_pertemuan || '-')}
+                  </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full border-collapse text-sm">
+                    <thead>
+                      <tr class="border border-slate-200 bg-slate-100">
+                        <th class="w-1/4 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Tahap &amp; Durasi</th>
+                        <th class="px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Deskripsi Kegiatan Guru &amp; Peserta Didik</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="border border-slate-200 align-top">
+                        <td class="bg-slate-50/70 px-3.5 py-3">
+                          <p class="font-semibold text-slate-900">Pendahuluan</p>
+                          <p class="mt-0.5 font-mono text-xs tabular-nums text-slate-500">${escapeHtml(pert.pendahuluan?.durasi || '-')}</p>
+                          <p class="mt-1 text-[11px] font-medium text-teal-800">${escapeHtml(pert.pendahuluan?.prinsip_fokus || '')}</p>
+                        </td>
+                        <td class="px-3.5 py-3">${renderBulletList(pert.pendahuluan?.langkah)}</td>
+                      </tr>
+                      <tr class="border border-slate-200 align-top">
+                        <td class="bg-slate-50/70 px-3.5 py-3">
+                          <p class="font-semibold text-slate-900">Kegiatan Inti</p>
+                          <p class="mt-0.5 font-mono text-xs tabular-nums text-slate-500">${escapeHtml(pert.inti?.durasi || '-')}</p>
+                          <p class="mt-1 text-[11px] text-slate-600">Memahami &bull; Mengaplikasi &bull; Merefleksi</p>
+                        </td>
+                        <td class="space-y-4 px-3.5 py-3">${sintaksHtml || '-'}</td>
+                      </tr>
+                      <tr class="border border-slate-200 align-top">
+                        <td class="bg-slate-50/70 px-3.5 py-3">
+                          <p class="font-semibold text-slate-900">Penutup</p>
+                          <p class="mt-0.5 font-mono text-xs tabular-nums text-slate-500">${escapeHtml(pert.penutup?.durasi || '-')}</p>
+                          <p class="mt-1 text-[11px] font-medium text-teal-800">${escapeHtml(pert.penutup?.prinsip_fokus || '')}</p>
+                        </td>
+                        <td class="px-3.5 py-3">${renderBulletList(pert.penutup?.langkah)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        html += `
+          <section class="space-y-4 border-t border-slate-200 pt-6">
+            <h2 class="border-b border-slate-200 pb-2 text-base font-bold text-teal-900">
+              B. KOMPONEN &amp; KEGIATAN INTI
+            </h2>
+            <div class="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 md:grid-cols-2">
+              <div>
+                <h3 class="text-xs font-bold tracking-wide text-teal-900 uppercase">Capaian Pembelajaran (CP Fase ${escapeHtml(formInput.fase)})</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(cp.rumusan_cp || '-')}</p>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold tracking-wide text-teal-900 uppercase">Tujuan Pembelajaran (TP)</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(keg.tujuan_pembelajaran || formInput.tujuanPembelajaran)}</p>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">1. Pemahaman Bermakna</h3>
+              <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(keg.pemahaman_bermakna)}</p>
+            </div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">2. Pertanyaan Pemantik</h3>
+                <div class="mt-1">${renderBulletList(keg.pertanyaan_pemantik)}</div>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">3. Persiapan Pembelajaran</h3>
+                <div class="mt-1">${renderBulletList(keg.persiapan_pembelajaran)}</div>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-sm font-semibold text-slate-900">
+                  4. Langkah-Langkah Pembelajaran Mendalam (${escapeHtml(metodeLabel)})
+                </h3>
+                <span class="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-medium text-slate-700">
+                  Terbagi menjadi ${daftarPertemuan.length} Pertemuan
+                </span>
+              </div>
+              ${pertemuanTablesHtml}
+            </div>
+            <div class="grid grid-cols-1 gap-4 pt-1 md:grid-cols-2">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">5. Refleksi Guru</h3>
+                <div class="mt-1">${renderBulletList(keg.refleksi_guru)}</div>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">6. Refleksi Peserta Didik</h3>
+                <div class="mt-1">${renderBulletList(keg.refleksi_peserta_didik)}</div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      // C. BAHAN AJAR
+      if (showSection('bahan')) {
+        const uraianHtml = (bahan.uraian_materi || [])
+          .map(
+            (u) => `
+            <div>
+              <h4 class="text-sm font-semibold text-slate-900">${escapeHtml(u.sub_topik)}</h4>
+              <p class="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-700">${renderFormattedText(u.penjelasan)}</p>
+            </div>`
+          )
+          .join('');
+
+        const glosRows = (bahan.glosarium || [])
+          .map(
+            (g) => `
+            <tr class="border border-slate-200">
+              <th class="w-1/3 bg-slate-50 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">${escapeHtml(g.istilah)}</th>
+              <td class="px-3.5 py-2 text-sm text-slate-700">${renderFormattedText(g.arti)}</td>
+            </tr>`
+          )
+          .join('');
+
+        html += `
+          <section class="space-y-4 border-t border-slate-200 pt-6">
+            <h2 class="border-b border-slate-200 pb-2 text-base font-bold text-teal-900">C. BAHAN AJAR</h2>
+            <h3 class="text-base font-semibold text-slate-900">${escapeHtml(bahan.judul_materi || '')}</h3>
+            <div class="space-y-3">${uraianHtml}</div>
+            <div>
+              <h4 class="text-sm font-semibold text-slate-900">Contoh / Studi Kasus Kontekstual</h4>
+              <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(bahan.contoh_kontekstual)}</p>
+            </div>
+            <div>
+              <h4 class="mb-2 text-sm font-semibold text-slate-900">Glosarium</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm"><tbody>${glosRows}</tbody></table>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-sm font-semibold text-slate-900">Daftar Pustaka</h4>
+              <div class="mt-1">${renderBulletList(bahan.daftar_pustaka)}</div>
+            </div>
+          </section>
+        `;
+      }
+
+      // D. LKPD KONTEKSTUAL
+      if (showSection('lkpd')) {
+        const baganHtml =
+          visualNodes.length > 0
+            ? `
+            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <div class="mb-3">
+                <p class="text-xs font-bold text-slate-900">
+                  Bagan Alur Konsep: ${escapeHtml(lkpd.visual_kontekstual?.judul_bagan || '')}
+                </p>
+                <p class="mt-0.5 text-xs text-slate-600">
+                  ${escapeHtml(lkpd.visual_kontekstual?.keterangan_visual || '')}
+                </p>
+              </div>
+              <div class="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
+                ${visualNodes
+                  .map(
+                    (node, idx) => `
+                  <div class="flex-1 rounded-xl border border-slate-200 bg-white p-3">
+                    <p class="font-mono text-[11px] font-semibold tabular-nums text-teal-800">
+                      0${idx + 1}. ${escapeHtml(node.label)}
+                    </p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-700">
+                      ${escapeHtml(node.deskripsi_singkat)}
+                    </p>
+                  </div>
+                  ${
+                    idx < visualNodes.length - 1
+                      ? `<span class="hidden shrink-0 text-slate-400 md:inline font-bold">&rarr;</span>`
+                      : ''
+                  }`
+                  )
+                  .join('')}
+              </div>
+            </div>`
+            : '';
+
+        const soalLkpdHtml = (lkpd.langkah_kegiatan_dan_soal || [])
+          .map(
+            (item) => `
+            <div class="rounded-xl border border-slate-200 p-4 space-y-2.5">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <p class="text-sm font-semibold text-slate-900">
+                  <span class="font-mono tabular-nums">${item.nomor}.</span> ${escapeHtml(item.judul_aktivitas)}
+                  ${
+                    formInput.jumlahPertemuan > 1 && item.pertemuan_ke
+                      ? `<span class="ml-1.5 inline-block rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700">Pertemuan ${item.pertemuan_ke}</span>`
+                      : ''
+                  }
+                </p>
+                <span class="text-xs font-medium text-teal-800">
+                  ${escapeHtml(item.tahap_pengalaman)} &bull; ${escapeHtml(item.jenis_respon)}
+                </span>
+              </div>
+              <p class="text-sm leading-relaxed text-slate-700">${renderFormattedText(item.instruksi_atau_pertanyaan)}</p>
+              <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50/40 px-3 py-3">
+                <p class="text-[11px] font-medium text-slate-400">
+                  Ruang Jawaban / Hasil Kerja Siswa (${escapeHtml(item.jenis_respon)}):
+                </p>
+                <div class="mt-3 space-y-4">
+                  <div class="border-b border-slate-200"></div>
+                  <div class="border-b border-slate-200"></div>
+                  <div class="border-b border-slate-200"></div>
+                </div>
+              </div>
+              ${
+                state.showTeacherKeyInLkpd
+                  ? `<p class="text-xs leading-relaxed text-teal-800">
+                      <span class="font-semibold">Panduan Jawaban Guru:</span> ${renderFormattedText(item.panduan_jawaban_guru)}
+                    </p>`
+                  : ''
+              }
+            </div>`
+          )
+          .join('');
+
+        const tabelPengamatanHtml =
+          obsHeaders.length > 0
+            ? `
+            <div class="space-y-2 border-t border-slate-200 pt-4">
+              <h4 class="text-sm font-semibold text-slate-900">
+                ${escapeHtml(lkpd.tabel_pengamatan?.judul_tabel || 'Tabel Pengamatan Siswa')}
+              </h4>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr class="border border-slate-300 bg-slate-100">
+                      ${obsHeaders
+                        .map(
+                          (h) =>
+                            `<th class="border border-slate-300 px-3 py-2 text-left font-semibold text-slate-800">${escapeHtml(h)}</th>`
+                        )
+                        .join('')}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${Array.from({ length: obsBlankRows })
+                      .map(
+                        () => `
+                      <tr class="border border-slate-300">
+                        ${obsHeaders.map(() => `<td class="h-9 border border-slate-300 px-3 py-2"></td>`).join('')}
+                      </tr>`
+                      )
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>`
+            : '';
+
+        const refleksiLkpdHtml =
+          Array.isArray(lkpd.refleksi_siswa_lkpd) && lkpd.refleksi_siswa_lkpd.length > 0
+            ? `
+            <div class="space-y-2 border-t border-slate-200 pt-4">
+              <h4 class="text-sm font-semibold text-slate-900">Refleksi Diri Siswa</h4>
+              ${renderBulletList(lkpd.refleksi_siswa_lkpd)}
+              <div class="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-700">
+                <span>Pemahamanku hari ini:</span>
+                <span>[ &nbsp; ] Belum Paham</span>
+                <span>[ &nbsp; ] Cukup Paham</span>
+                <span>[ &nbsp; ] Sangat Paham &amp; Siap Mengajar Teman</span>
+              </div>
+            </div>`
+            : '';
+
+        html += `
+          <section class="print-page-break space-y-4 border-t border-slate-200 pt-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <h2 class="text-base font-bold text-teal-900">D. LEMBAR KERJA PESERTA DIDIK (LKPD)</h2>
+              <button
+                type="button"
+                onclick="toggleTeacherKeyInLkpd()"
+                class="no-print inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+              >
+                ${
+                  state.showTeacherKeyInLkpd
+                    ? 'Sembunyikan Kunci Guru (Mode Siswa)'
+                    : 'Tampilkan Kunci Guru'
+                }
+              </button>
+            </div>
+
+            <div class="space-y-5 rounded-2xl border border-slate-300 bg-white p-6">
+              <div class="border-b-2 border-slate-800 pb-4 text-center">
+                <p class="text-[11px] font-semibold tracking-widest text-teal-800 uppercase">
+                  Lembar Kerja Peserta Didik &bull; ${escapeHtml(formInput.kelas)} (Fase ${escapeHtml(formInput.fase)})
+                </p>
+                <h3 class="mt-1 text-lg font-bold text-slate-900">${escapeHtml(lkpd.judul_lkpd || '')}</h3>
+                ${
+                  lkpd.subjudul_tema
+                    ? `<p class="mt-0.5 text-sm font-medium text-slate-600">${escapeHtml(lkpd.subjudul_tema)}</p>`
+                    : ''
+                }
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-xs text-slate-700">
+                  <span>${escapeHtml(lkpd.identitas_siswa || '')}</span>
+                  ${
+                    lkpd.estimasi_waktu
+                      ? `<span>&bull;</span><span class="tabular-nums">Waktu: ${escapeHtml(lkpd.estimasi_waktu)}</span>`
+                      : ''
+                  }
+                </div>
+              </div>
+
+              ${
+                lkpd.konteks_masalah
+                  ? `<div class="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
+                      <p class="text-xs font-bold tracking-wide text-teal-900 uppercase">Misi &amp; Situasi Nyata</p>
+                      <p class="mt-1.5 text-sm leading-relaxed text-slate-800">${renderFormattedText(lkpd.konteks_masalah)}</p>
+                    </div>`
+                  : ''
+              }
+
+              <div>
+                <h4 class="text-sm font-semibold text-slate-900">Tujuan Kegiatan</h4>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(lkpd.tujuan_lkpd)}</p>
+              </div>
+
+              ${baganHtml}
+
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-900">Petunjuk Pengerjaan</h4>
+                  <div class="mt-1">${renderBulletList(lkpd.petunjuk_pengerjaan)}</div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-900">Alat dan Bahan</h4>
+                  <div class="mt-1">${renderBulletList(lkpd.alat_dan_bahan)}</div>
+                </div>
+              </div>
+
+              <div class="space-y-4 border-t border-slate-200 pt-4">
+                <h4 class="text-sm font-semibold text-slate-900">Aktivitas Eksplorasi &amp; Pertanyaan</h4>
+                ${soalLkpdHtml}
+              </div>
+
+              ${tabelPengamatanHtml}
+              ${refleksiLkpdHtml}
+            </div>
+          </section>
+        `;
+      }
+
+      // E. MEDIA PEMBELAJARAN
+      if (showSection('media')) {
+        const mediaRows = (media.daftar_media || [])
+          .map(
+            (md) => `
+            <tr class="border border-slate-200 align-top">
+              <td class="px-3.5 py-2 font-semibold text-slate-900">${escapeHtml(md.nama_media)}</td>
+              <td class="px-3.5 py-2 text-slate-700">${escapeHtml(md.jenis)}</td>
+              <td class="px-3.5 py-2 text-slate-700">${renderFormattedText(md.fungsi_dan_cara_pakai)}</td>
+            </tr>`
+          )
+          .join('');
+
+        html += `
+          <section class="space-y-4 border-t border-slate-200 pt-6">
+            <h2 class="border-b border-slate-200 pb-2 text-base font-bold text-teal-900">E. MEDIA PEMBELAJARAN</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr class="border border-slate-200 bg-slate-100">
+                    <th class="w-1/4 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Nama Media</th>
+                    <th class="w-1/5 px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Jenis</th>
+                    <th class="px-3.5 py-2 text-left text-xs font-semibold text-slate-800">Fungsi &amp; Cara Penggunaan</th>
+                  </tr>
+                </thead>
+                <tbody>${mediaRows}</tbody>
+              </table>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">Rancangan Visual / Slide Presentasi / Papan Tulis</h3>
+              <div class="mt-1">${renderBulletList(media.rancangan_visual_atau_slide)}</div>
+            </div>
+          </section>
+        `;
+      }
+
+      // F. ASESMEN & RUBRIK PENILAIAN
+      if (showSection('asesmen')) {
+        const sumatifHtml = (ases.asesmen_sumatif?.soal_evaluasi || [])
+          .map(
+            (s) => `
+            <div class="space-y-1">
+              <p class="whitespace-pre-line text-sm leading-relaxed text-slate-800">
+                <span class="font-mono font-semibold tabular-nums text-slate-900">${s.nomor}.</span> ${renderFormattedText(s.pertanyaan)}
+              </p>
+              <p class="text-xs text-slate-600">
+                <span class="font-semibold text-slate-800">Kunci Jawaban:</span> ${renderFormattedText(s.kunci_jawaban)}
+              </p>
+            </div>`
+          )
+          .join('');
+
+        const rubrikRows = (ases.rubrik_penilaian || [])
+          .map(
+            (r) => `
+            <tr class="border border-slate-200 align-top">
+              <td class="bg-slate-50 px-3 py-2 font-semibold text-slate-900">${escapeHtml(r.aspek)}</td>
+              <td class="px-3 py-2 text-slate-700">${renderFormattedText(r.perlu_bimbingan)}</td>
+              <td class="px-3 py-2 text-slate-700">${renderFormattedText(r.cukup)}</td>
+              <td class="px-3 py-2 text-slate-700">${renderFormattedText(r.baik)}</td>
+              <td class="px-3 py-2 text-slate-700">${renderFormattedText(r.sangat_baik)}</td>
+            </tr>`
+          )
+          .join('');
+
+        html += `
+          <section class="space-y-4 border-t border-slate-200 pt-6">
+            <h2 class="border-b border-slate-200 pb-2 text-base font-bold text-teal-900">F. ASESMEN &amp; RUBRIK PENILAIAN</h2>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">1a. Asesmen Diagnostik Non-Kognitif</h3>
+                <div class="mt-1">${renderBulletList(ases.asesmen_diagnostik?.non_kognitif)}</div>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">1b. Asesmen Diagnostik Kognitif</h3>
+                <div class="mt-1">${renderBulletList(ases.asesmen_diagnostik?.kognitif)}</div>
+              </div>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">2. Asesmen Formatif</h3>
+              <p class="mt-1 text-sm text-slate-700">
+                <span class="font-semibold text-slate-900">Teknik &amp; Instrumen:</span> ${renderFormattedText(ases.asesmen_formatif?.teknik_dan_instrumen)}
+              </p>
+              <div class="mt-1.5">${renderBulletList(ases.asesmen_formatif?.indikator_pengamatan)}</div>
+            </div>
+            <div>
+              <h3 class="mb-2 text-sm font-semibold text-slate-900">3. Asesmen Sumatif (Evaluasi Akhir)</h3>
+              <div class="space-y-3">${sumatifHtml}</div>
+            </div>
+            <div>
+              <h3 class="mb-2 text-sm font-semibold text-slate-900">4. Rubrik Penilaian</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr class="border border-slate-200 bg-slate-100">
+                      <th class="w-1/6 px-3 py-2 text-left font-semibold text-slate-800">Aspek</th>
+                      <th class="px-3 py-2 text-left font-semibold text-slate-800">Perlu Bimbingan (1)</th>
+                      <th class="px-3 py-2 text-left font-semibold text-slate-800">Cukup (2)</th>
+                      <th class="px-3 py-2 text-left font-semibold text-slate-800">Baik (3)</th>
+                      <th class="px-3 py-2 text-left font-semibold text-slate-800">Sangat Baik (4)</th>
+                    </tr>
+                  </thead>
+                  <tbody>${rubrikRows}</tbody>
+                </table>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 gap-4 pt-1 md:grid-cols-2">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">5a. Program Pengayaan</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(ases.pengayaan)}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">5b. Program Remedial</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-700">${renderFormattedText(ases.remedial)}</p>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      // G. LEMBAR PENGESAHAN RESMI
+      if (showSection('pengesahan')) {
+        html += `
+          <section class="border-t border-slate-300 pt-8" id="lembar-pengesahan">
+            <h2 class="no-print mb-4 border-b border-slate-200 pb-2 text-base font-bold text-teal-900">
+              G. LEMBAR PENGESAHAN RESMI
+            </h2>
+            <div class="grid grid-cols-2 gap-8 pt-2 text-sm text-slate-900">
+              <div class="flex flex-col justify-between">
+                <div>
+                  <p>Mengetahui,</p>
+                  <p class="font-medium">
+                    Kepala ${escapeHtml(satuanPendidikan !== '-' ? satuanPendidikan : 'Sekolah')}
+                  </p>
+                </div>
+                <div class="h-20" aria-hidden="true"></div>
+                <div>
+                  <p class="font-bold underline decoration-slate-800 underline-offset-4">${escapeHtml(namaKepsek)}</p>
+                  <p class="mt-1 font-mono text-xs tabular-nums text-slate-700">NIP. ${escapeHtml(nipKepsek)}</p>
+                </div>
+              </div>
+              <div class="flex flex-col justify-between">
+                <div>
+                  <p class="tabular-nums">${escapeHtml(tempat)}, ${escapeHtml(tanggalLengkap)}</p>
+                  <p class="font-medium">Guru Mata Pelajaran / Penyusun,</p>
+                </div>
+                <div class="h-20" aria-hidden="true"></div>
+                <div>
+                  <p class="font-bold underline decoration-slate-800 underline-offset-4">${escapeHtml(namaGuru)}</p>
+                  <p class="mt-1 font-mono text-xs tabular-nums text-slate-700">NIP. ${escapeHtml(nipGuru)}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      document.getElementById('documentArticle').innerHTML = html;
+    }
+
+    async function handleCopyText() {
+      const article = document.getElementById('documentArticle');
+      const btn = document.getElementById('copyTextBtn');
+      if (!article || !state.modul) return;
+      try {
+        await navigator.clipboard.writeText(article.innerText);
+        btn.textContent = 'Tersalin!';
+        setTimeout(() => {
+          btn.textContent = 'Salin Teks';
+        }, 1800);
+      } catch (e) {
+        alert('Gagal menyalin otomatis. Silakan blok teks pratinjau secara manual.');
+      }
+    }
+
+    // =========================================================================
+    // EKSPOR KE MICROSOFT WORD (.DOCX) LENGKAP DENGAN CP & LEMBAR PENGESAHAN
+    // =========================================================================
+    function parseRuns(text, baseOptions = {}) {
+      const str = text === null || text === undefined || text === '' ? '-' : String(text);
+      const parts = str.split(/(\*\*.*?\*\*)/g);
+      return parts.filter(Boolean).map((part) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return new docx.TextRun({
+            text: part.slice(2, -2),
+            bold: true,
+            font: 'Calibri',
+            size: 22,
+            ...baseOptions,
+          });
+        }
+        return new docx.TextRun({
+          text: part,
+          font: 'Calibri',
+          size: 22,
+          ...baseOptions,
+        });
+      });
+    }
+
+    function makePara(text, opts = {}) {
+      return new docx.Paragraph({
+        spacing: { after: 110, line: 276 },
+        children: parseRuns(text, opts.run || {}),
+        ...(opts.para || {}),
+      });
+    }
+
+    function makeHeading1(text) {
+      return new docx.Paragraph({
+        spacing: { before: 280, after: 140 },
+        shading: { type: docx.ShadingType.CLEAR, fill: 'E6F4F1' },
+        border: {
+          bottom: { style: docx.BorderStyle.SINGLE, size: 12, color: '0F766E' },
+        },
+        children: [
+          new docx.TextRun({
+            text: `  ${text}`,
+            bold: true,
+            color: '0F766E',
+            font: 'Calibri',
+            size: 26,
+          }),
+        ],
+      });
+    }
+
+    function makeHeading2(text) {
+      return new docx.Paragraph({
+        spacing: { before: 180, after: 80 },
+        children: [
+          new docx.TextRun({
+            text: String(text || ''),
+            bold: true,
+            color: '1E293B',
+            font: 'Calibri',
+            size: 23,
+          }),
+        ],
+      });
+    }
+
+    function makeBullets(arr) {
+      if (!Array.isArray(arr) || arr.length === 0) return [makePara('-')];
+      return arr.map(
+        (item) =>
+          new docx.Paragraph({
+            bullet: { level: 0 },
+            spacing: { after: 75, line: 276 },
+            children: parseRuns(item),
+          })
+      );
+    }
+
+    function cellBorders(color = 'CBD5E1') {
+      const b = { style: docx.BorderStyle.SINGLE, size: 4, color };
+      return { top: b, bottom: b, left: b, right: b };
+    }
+
+    function noBorders() {
+      const none = { style: docx.BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+      return { top: none, bottom: none, left: none, right: none };
+    }
+
+    function makeCell(contentChildren, { widthPct = 50, shade = null, borderColor = 'CBD5E1' } = {}) {
+      return new docx.TableCell({
+        width: { size: widthPct, type: docx.WidthType.PERCENTAGE },
+        margins: { top: 90, bottom: 90, left: 130, right: 130 },
+        borders: cellBorders(borderColor),
+        shading: shade ? { type: docx.ShadingType.CLEAR, fill: shade } : undefined,
+        children: Array.isArray(contentChildren) ? contentChildren : [contentChildren],
+      });
+    }
+
+    function makeKeyValueTable(rows) {
+      return new docx.Table({
+        width: { size: 100, type: docx.WidthType.PERCENTAGE },
+        rows: rows.map(
+          ([label, value]) =>
+            new docx.TableRow({
+              children: [
+                makeCell(
+                  makePara(label, { run: { bold: true }, para: { spacing: { after: 0 } } }),
+                  { widthPct: 32, shade: 'F1F5F9' }
+                ),
+                makeCell(makePara(value || '-', { para: { spacing: { after: 0 } } }), {
+                  widthPct: 68,
+                }),
+              ],
+            })
+        ),
+      });
+    }
+
+    async function handleExportWord() {
+      if (!state.modul) return;
+      if (typeof window.docx === 'undefined') {
+        showError('Library pembuat Word (docx.js) gagal dimuat. Pastikan koneksi internet aktif lalu muat ulang halaman.');
+        return;
+      }
+
+      try {
+        const modul = state.modul;
+        const formInput = getCurrentFormInput();
+        const info = modul.informasi_umum || {};
+        const idn = info.identitas || {};
+        const cp = info.capaian_pembelajaran || {};
+        const pend = info.pendekatan_dan_metode;
+        const prinsip = pend?.prinsip_pembelajaran_mendalam;
+        const keg = modul.kegiatan_inti || {};
+        const kp = keg.kegiatan_pembelajaran || {};
+        const bahan = modul.bahan_ajar || {};
+        const lkpd = modul.lkpd || {};
+        const media = modul.media_pembelajaran || {};
+        const ases = modul.asesmen || {};
+
+        const namaGuru = formInput.namaGuru || idn.nama_penyusun || '-';
+        const nipGuru = formInput.nipGuru || idn.nip_penyusun || '-';
+        const namaKepsek = formInput.namaKepalaSekolah || '............................................';
+        const nipKepsek = formInput.nipKepalaSekolah || '............................................';
+        const satuanPendidikan = formInput.satuanPendidikan || idn.satuan_pendidikan || '-';
+        const tempat = formInput.tempatPengesahan || '........................';
+        const tanggalLengkap = `${formInput.tanggalPengesahan} ${formInput.bulanPengesahan} ${formInput.tahunPengesahan}`;
+
+        const docChildren = [];
+
+        // JUDUL DOKUMEN
+        docChildren.push(
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 60 },
+            children: [
+              new docx.TextRun({
+                text: 'MODUL AJAR KURIKULUM MERDEKA',
+                bold: true,
+                size: 32,
+                color: '0F766E',
+                font: 'Calibri',
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [
+              new docx.TextRun({
+                text: 'PENDEKATAN PEMBELAJARAN MENDALAM (DEEP LEARNING)',
+                bold: true,
+                size: 20,
+                color: '475569',
+                font: 'Calibri',
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 240 },
+            children: [
+              new docx.TextRun({
+                text: info.judul_modul || '',
+                bold: true,
+                size: 24,
+                color: '0F172A',
+                font: 'Calibri',
+              }),
+            ],
+          })
+        );
+
+        // A. INFORMASI UMUM & CAPAIAN PEMBELAJARAN (CP)
+        docChildren.push(makeHeading1('A. INFORMASI UMUM & CAPAIAN PEMBELAJARAN (CP)'));
+        docChildren.push(
+          makeKeyValueTable([
+            ['Nama Penyusun / Guru', namaGuru],
+            ['NIP Penyusun / Guru', nipGuru],
+            ['Satuan Pendidikan', satuanPendidikan],
+            ['Tahun Ajaran', formInput.tahunAjaran || idn.tahun_ajaran || '2026/2027'],
+            ['Jenjang / Kelas / Fase', `${formInput.kelas} (Fase ${formInput.fase})`],
+            ['Mata Pelajaran', formInput.mataPelajaran || idn.mata_pelajaran],
+            ['Topik / Materi Pokok', idn.topik_materi],
+            ['Alokasi Waktu', formInput.jumlahJp || idn.alokasi_waktu],
+            ['Jumlah Pertemuan', `${formInput.jumlahPertemuan} Pertemuan`],
+            [
+              'Pendekatan & Metode',
+              `${pend?.pendekatan || 'Pembelajaran Mendalam (Deep Learning)'} — ${
+                pend?.metode_utama || formInput.metodePembelajaran
+              }`,
+            ],
+          ])
+        );
+
+        docChildren.push(makeHeading2(`Capaian Pembelajaran (CP Fase ${formInput.fase})`));
+        docChildren.push(
+          makeKeyValueTable([
+            ['Elemen CP', cp.elemen_cp || '-'],
+            ['Rumusan Capaian Pembelajaran', cp.rumusan_cp || '-'],
+            ['Keterkaitan CP dan TP', cp.keterkaitan_tp_dan_cp || '-'],
+          ])
+        );
+
+        docChildren.push(makeHeading2('1. Kompetensi Awal'), makePara(info.kompetensi_awal));
+        docChildren.push(makeHeading2('2. Dimensi Profil Lulusan (DPL)'));
+
+        const dplList = info.dimensi_profil_lulusan || [];
+        if (dplList.length > 0) {
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: [
+                    makeCell(makePara('Dimensi', { run: { bold: true } }), { widthPct: 24, shade: 'E2E8F0' }),
+                    makeCell(makePara('Relevansi dengan Materi', { run: { bold: true } }), { widthPct: 38, shade: 'E2E8F0' }),
+                    makeCell(makePara('Implementasi Pembelajaran', { run: { bold: true } }), { widthPct: 38, shade: 'E2E8F0' }),
+                  ],
+                }),
+                ...dplList.map(
+                  (d) =>
+                    new docx.TableRow({
+                      children: [
+                        makeCell(makePara(d.dimensi, { run: { bold: true } }), { widthPct: 24, shade: 'F8FAFC' }),
+                        makeCell(makePara(d.relevansi_materi), { widthPct: 38 }),
+                        makeCell(makePara(d.implementasi_pembelajaran), { widthPct: 38 }),
+                      ],
+                    })
+                ),
+              ],
+            })
+          );
+        } else {
+          docChildren.push(makePara('-'));
+        }
+
+        docChildren.push(makeHeading2('3. Sarana dan Prasarana'), ...makeBullets(info.sarana_dan_prasarana));
+        docChildren.push(makeHeading2('4. Target Peserta Didik'), makePara(info.target_peserta_didik));
+        docChildren.push(makeHeading2('5. Prinsip Pembelajaran Mendalam'));
+        docChildren.push(
+          makeKeyValueTable([
+            ['Berkesadaran (Mindful)', prinsip?.berkesadaran],
+            ['Bermakna (Meaningful)', prinsip?.bermakna],
+            ['Menggembirakan (Joyful)', prinsip?.menggembirakan],
+          ])
+        );
+
+        // B. KOMPONEN & KEGIATAN INTI
+        docChildren.push(makeHeading1('B. KOMPONEN & KEGIATAN INTI'));
+        docChildren.push(makeHeading2(`1. Capaian Pembelajaran (Fase ${formInput.fase})`), makePara(cp.rumusan_cp || '-'));
+        docChildren.push(makeHeading2('2. Tujuan Pembelajaran (TP)'), makePara(keg.tujuan_pembelajaran || formInput.tujuanPembelajaran));
+        docChildren.push(makeHeading2('3. Pemahaman Bermakna'), makePara(keg.pemahaman_bermakna));
+        docChildren.push(makeHeading2('4. Pertanyaan Pemantik'), ...makeBullets(keg.pertanyaan_pemantik));
+        docChildren.push(makeHeading2('5. Persiapan Pembelajaran'), ...makeBullets(keg.persiapan_pembelajaran));
+        const daftarPertemuanWord =
+          Array.isArray(kp.daftar_pertemuan) && kp.daftar_pertemuan.length > 0
+            ? kp.daftar_pertemuan
+            : [
+                {
+                  pertemuan_ke: 1,
+                  sub_topik_pertemuan: idn.topik_materi || 'Kegiatan Pembelajaran',
+                  alokasi_waktu_pertemuan: formInput.jumlahJp || idn.alokasi_waktu || '-',
+                  pendahuluan: kp.pendahuluan,
+                  inti: kp.inti,
+                  penutup: kp.penutup,
+                },
+              ];
+
+        docChildren.push(
+          makeHeading2(
+            `6. Langkah-Langkah Kegiatan Pembelajaran (${pend?.metode_utama || formInput.metodePembelajaran} — ${daftarPertemuanWord.length} Pertemuan)`
+          )
+        );
+
+        daftarPertemuanWord.forEach((pert, idx) => {
+          const nomorPertemuan = pert.pertemuan_ke || idx + 1;
+          docChildren.push(
+            makePara(
+              `**Pertemuan ke-${nomorPertemuan}: ${pert.sub_topik_pertemuan || idn.topik_materi || ''}** (Alokasi: ${
+                pert.alokasi_waktu_pertemuan || '-'
+              })`,
+              {
+                run: { color: '0F766E' },
+                para: { spacing: { before: idx === 0 ? 80 : 200, after: 80 } },
+              }
+            )
+          );
+
+          const intiChildren = [];
+          (pert.inti?.sintaks_model || []).forEach((s) => {
+            intiChildren.push(
+              makePara(`**${s.tahap}** (${s.pengalaman_belajar} — ${s.prinsip_diterapkan})`, {
+                para: { spacing: { before: 100, after: 40 } },
+              })
+            );
+            intiChildren.push(...makeBullets(s.aktivitas));
+          });
+
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: [
+                    makeCell(makePara('Tahap & Durasi', { run: { bold: true } }), { widthPct: 26, shade: 'E2E8F0' }),
+                    makeCell(makePara('Deskripsi Kegiatan Guru & Peserta Didik', { run: { bold: true } }), {
+                      widthPct: 74,
+                      shade: 'E2E8F0',
+                    }),
+                  ],
+                }),
+                new docx.TableRow({
+                  children: [
+                    makeCell(
+                      makePara(
+                        `**Pendahuluan**\n(${pert.pendahuluan?.durasi || '-'})\nFokus: ${
+                          pert.pendahuluan?.prinsip_fokus || 'Berkesadaran'
+                        }`
+                      ),
+                      { widthPct: 26, shade: 'F8FAFC' }
+                    ),
+                    makeCell(makeBullets(pert.pendahuluan?.langkah), { widthPct: 74 }),
+                  ],
+                }),
+                new docx.TableRow({
+                  children: [
+                    makeCell(makePara(`**Kegiatan Inti**\n(${pert.inti?.durasi || '-'})`), {
+                      widthPct: 26,
+                      shade: 'F8FAFC',
+                    }),
+                    makeCell(intiChildren.length ? intiChildren : [makePara('-')], { widthPct: 74 }),
+                  ],
+                }),
+                new docx.TableRow({
+                  children: [
+                    makeCell(
+                      makePara(
+                        `**Penutup**\n(${pert.penutup?.durasi || '-'})\nFokus: ${
+                          pert.penutup?.prinsip_fokus || 'Merefleksi'
+                        }`
+                      ),
+                      { widthPct: 26, shade: 'F8FAFC' }
+                    ),
+                    makeCell(makeBullets(pert.penutup?.langkah), { widthPct: 74 }),
+                  ],
+                }),
+              ],
+            })
+          );
+        });
+
+        docChildren.push(makeHeading2('7. Refleksi Guru'), ...makeBullets(keg.refleksi_guru));
+        docChildren.push(makeHeading2('8. Refleksi Peserta Didik'), ...makeBullets(keg.refleksi_peserta_didik));
+
+        // C. BAHAN AJAR
+        docChildren.push(makeHeading1('C. BAHAN AJAR'));
+        docChildren.push(makeHeading2(bahan.judul_materi || 'Ringkasan Materi'));
+        (bahan.uraian_materi || []).forEach((u) => {
+          docChildren.push(makeHeading2(u.sub_topik));
+          docChildren.push(makePara(u.penjelasan));
+        });
+        docChildren.push(makeHeading2('Contoh / Studi Kasus Kontekstual'), makePara(bahan.contoh_kontekstual));
+        docChildren.push(makeHeading2('Glosarium'));
+        if (Array.isArray(bahan.glosarium) && bahan.glosarium.length) {
+          docChildren.push(makeKeyValueTable(bahan.glosarium.map((g) => [g.istilah, g.arti])));
+        } else {
+          docChildren.push(makePara('-'));
+        }
+        docChildren.push(makeHeading2('Daftar Pustaka'), ...makeBullets(bahan.daftar_pustaka));
+
+        // D. LKPD KONTEKSTUAL
+        docChildren.push(new docx.Paragraph({ children: [new docx.PageBreak()] }));
+        docChildren.push(makeHeading1('D. LEMBAR KERJA PESERTA DIDIK (LKPD)'));
+        docChildren.push(
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 60 },
+            children: [
+              new docx.TextRun({
+                text: lkpd.judul_lkpd || 'LKPD',
+                bold: true,
+                size: 28,
+                font: 'Calibri',
+                color: '0F172A',
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [
+              new docx.TextRun({
+                text: lkpd.subjudul_tema || '',
+                italics: true,
+                size: 22,
+                font: 'Calibri',
+                color: '0F766E',
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            alignment: docx.AlignmentType.CENTER,
+            spacing: { after: 180 },
+            children: [
+              new docx.TextRun({
+                text: `${lkpd.identitas_siswa || ''}   |   Estimasi: ${lkpd.estimasi_waktu || '-'}`,
+                size: 20,
+                font: 'Calibri',
+              }),
+            ],
+          })
+        );
+
+        if (lkpd.konteks_masalah) {
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: [
+                    makeCell(
+                      [
+                        makePara('**Misi & Konteks Permasalahan Nyata**', {
+                          run: { color: '0F766E' },
+                          para: { spacing: { after: 60 } },
+                        }),
+                        makePara(lkpd.konteks_masalah, { para: { spacing: { after: 0 } } }),
+                      ],
+                      { widthPct: 100, shade: 'F0FDFA', borderColor: '99F6E4' }
+                    ),
+                  ],
+                }),
+              ],
+            })
+          );
+        }
+
+        docChildren.push(makeHeading2('Tujuan Kegiatan'), makePara(lkpd.tujuan_lkpd));
+
+        const visualNodes = lkpd.visual_kontekstual?.tahapan_atau_poin || [];
+        if (visualNodes.length > 0) {
+          docChildren.push(
+            makeHeading2(`Bagan Alur Konsep: ${lkpd.visual_kontekstual.judul_bagan || ''}`),
+            makePara(lkpd.visual_kontekstual.keterangan_visual, { run: { italics: true, color: '475569' } })
+          );
+          const colPct = Math.floor(100 / visualNodes.length);
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: visualNodes.map((node, i) =>
+                    makeCell(
+                      [
+                        makePara(`**${i + 1}. ${node.label}**`, {
+                          run: { color: '0F766E', size: 20 },
+                          para: { spacing: { after: 40 } },
+                        }),
+                        makePara(node.deskripsi_singkat, {
+                          run: { size: 19 },
+                          para: { spacing: { after: 0 } },
+                        }),
+                      ],
+                      { widthPct: colPct, shade: 'F8FAFC' }
+                    )
+                  ),
+                }),
+              ],
+            })
+          );
+        }
+
+        docChildren.push(makeHeading2('Petunjuk Pengerjaan'), ...makeBullets(lkpd.petunjuk_pengerjaan));
+        docChildren.push(makeHeading2('Alat dan Bahan'), ...makeBullets(lkpd.alat_dan_bahan));
+        docChildren.push(makeHeading2('Aktivitas & Langkah Kerja Siswa'));
+
+        (lkpd.langkah_kegiatan_dan_soal || []).forEach((item) => {
+          const pertTag =
+            formInput.jumlahPertemuan > 1 && item.pertemuan_ke ? `Pertemuan ${item.pertemuan_ke} | ` : '';
+          docChildren.push(
+            makePara(
+              `**${item.nomor}. ${item.judul_aktivitas}** [${pertTag}${item.tahap_pengalaman} — ${item.jenis_respon}]`,
+              {
+                para: { spacing: { before: 120, after: 60 } },
+              }
+            )
+          );
+          docChildren.push(makePara(item.instruksi_atau_pertanyaan));
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: [
+                    makeCell(
+                      [
+                        makePara('Ruang Jawaban / Sketsa Siswa:', {
+                          run: { size: 19, color: '64748B', italics: true },
+                          para: { spacing: { after: 360 } },
+                        }),
+                        makePara('', { para: { spacing: { after: 120 } } }),
+                      ],
+                      { widthPct: 100 }
+                    ),
+                  ],
+                }),
+              ],
+            })
+          );
+          docChildren.push(
+            makePara(`Catatan/Kunci Pegangan Guru: ${item.panduan_jawaban_guru}`, {
+              run: { italics: true, color: '0F766E', size: 20 },
+              para: { spacing: { before: 60, after: 120 } },
+            })
+          );
+        });
+
+        const obsHeaders = lkpd.tabel_pengamatan?.kolom_header || [];
+        if (obsHeaders.length > 0) {
+          docChildren.push(makeHeading2(lkpd.tabel_pengamatan.judul_tabel || 'Tabel Pengamatan Siswa'));
+          const colWidth = Math.floor(100 / obsHeaders.length);
+          const blankRowCount = Math.min(Math.max(lkpd.tabel_pengamatan.jumlah_baris_kosong || 4, 2), 6);
+          docChildren.push(
+            new docx.Table({
+              width: { size: 100, type: docx.WidthType.PERCENTAGE },
+              rows: [
+                new docx.TableRow({
+                  children: obsHeaders.map((h) =>
+                    makeCell(makePara(h, { run: { bold: true }, para: { spacing: { after: 0 } } }), {
+                      widthPct: colWidth,
+                      shade: 'E2E8F0',
+                    })
+                  ),
+                }),
+                ...Array.from({ length: blankRowCount }, () =>
+                  new docx.TableRow({
+                    children: obsHeaders.map(() =>
+                      makeCell(makePara(' ', { para: { spacing: { after: 220 } } }), { widthPct: colWidth })
+                    ),
+                  })
+                ),
+              ],
+            })
+          );
+        }
+
+        if (Array.isArray(lkpd.refleksi_siswa_lkpd) && lkpd.refleksi_siswa_lkpd.length) {
+          docChildren.push(makeHeading2('Refleksi Diri Siswa'), ...makeBullets(lkpd.refleksi_siswa_lkpd));
+        }
+
+        // E. MEDIA PEMBELAJARAN
+        docChildren.push(makeHeading1('E. MEDIA PEMBELAJARAN'));
+        const mediaRows = (media.daftar_media || []).map(
+          (md) =>
+            new docx.TableRow({
+              children: [
+                makeCell(makePara(md.nama_media, { run: { bold: true } }), { widthPct: 28 }),
+                makeCell(makePara(md.jenis), { widthPct: 20 }),
+                makeCell(makePara(md.fungsi_dan_cara_pakai), { widthPct: 52 }),
+              ],
+            })
+        );
+        docChildren.push(
+          new docx.Table({
+            width: { size: 100, type: docx.WidthType.PERCENTAGE },
+            rows: [
+              new docx.TableRow({
+                children: [
+                  makeCell(makePara('Nama Media', { run: { bold: true } }), { widthPct: 28, shade: 'E2E8F0' }),
+                  makeCell(makePara('Jenis', { run: { bold: true } }), { widthPct: 20, shade: 'E2E8F0' }),
+                  makeCell(makePara('Fungsi & Cara Penggunaan', { run: { bold: true } }), {
+                    widthPct: 52,
+                    shade: 'E2E8F0',
+                  }),
+                ],
+              }),
+              ...mediaRows,
+            ],
+          })
+        );
+        docChildren.push(
+          makeHeading2('Rancangan Visual / Slide / Papan Tulis'),
+          ...makeBullets(media.rancangan_visual_atau_slide)
+        );
+
+        // F. ASESMEN
+        docChildren.push(makeHeading1('F. ASESMEN & RUBRIK PENILAIAN'));
+        docChildren.push(makeHeading2('1. Asesmen Diagnostik'));
+        docChildren.push(
+          makePara('a. Diagnostik Non-Kognitif:', { run: { bold: true } }),
+          ...makeBullets(ases.asesmen_diagnostik?.non_kognitif)
+        );
+        docChildren.push(
+          makePara('b. Diagnostik Kognitif (Awal):', { run: { bold: true } }),
+          ...makeBullets(ases.asesmen_diagnostik?.kognitif)
+        );
+        docChildren.push(makeHeading2('2. Asesmen Formatif'));
+        docChildren.push(
+          makePara(`**Teknik & Instrumen:** ${ases.asesmen_formatif?.teknik_dan_instrumen || '-'}`)
+        );
+        docChildren.push(
+          makePara('Indikator Pengamatan:', { run: { bold: true } }),
+          ...makeBullets(ases.asesmen_formatif?.indikator_pengamatan)
+        );
+        docChildren.push(makeHeading2('3. Asesmen Sumatif (Evaluasi Akhir)'));
+        (ases.asesmen_sumatif?.soal_evaluasi || []).forEach((s) => {
+          docChildren.push(makePara(`**${s.nomor}.** ${s.pertanyaan}`));
+          docChildren.push(
+            makePara(`Kunci Jawaban: ${s.kunci_jawaban}`, { run: { italics: true, color: '1E40AF' } })
+          );
+        });
+        docChildren.push(makeHeading2('4. Rubrik Penilaian'));
+        const rubrikRows = (ases.rubrik_penilaian || []).map(
+          (r) =>
+            new docx.TableRow({
+              children: [
+                makeCell(makePara(r.aspek, { run: { bold: true } }), { widthPct: 18, shade: 'F8FAFC' }),
+                makeCell(makePara(r.perlu_bimbingan), { widthPct: 20 }),
+                makeCell(makePara(r.cukup), { widthPct: 20 }),
+                makeCell(makePara(r.baik), { widthPct: 21 }),
+                makeCell(makePara(r.sangat_baik), { widthPct: 21 }),
+              ],
+            })
+        );
+        docChildren.push(
+          new docx.Table({
+            width: { size: 100, type: docx.WidthType.PERCENTAGE },
+            rows: [
+              new docx.TableRow({
+                children: [
+                  makeCell(makePara('Aspek', { run: { bold: true } }), { widthPct: 18, shade: 'E2E8F0' }),
+                  makeCell(makePara('Perlu Bimbingan (1)', { run: { bold: true } }), {
+                    widthPct: 20,
+                    shade: 'E2E8F0',
+                  }),
+                  makeCell(makePara('Cukup (2)', { run: { bold: true } }), { widthPct: 20, shade: 'E2E8F0' }),
+                  makeCell(makePara('Baik (3)', { run: { bold: true } }), { widthPct: 21, shade: 'E2E8F0' }),
+                  makeCell(makePara('Sangat Baik (4)', { run: { bold: true } }), {
+                    widthPct: 21,
+                    shade: 'E2E8F0',
+                  }),
+                ],
+              }),
+              ...rubrikRows,
+            ],
+          })
+        );
+        docChildren.push(makeHeading2('5. Pengayaan & Remedial'));
+        docChildren.push(makePara(`**Pengayaan:** ${ases.pengayaan || '-'}`));
+        docChildren.push(makePara(`**Remedial:** ${ases.remedial || '-'}`));
+
+        // G. LEMBAR PENGESAHAN RESMI
+        docChildren.push(new docx.Paragraph({ spacing: { before: 420, after: 120 }, children: [] }));
+
+        const signatureLeftParagraphs = [
+          new docx.Paragraph({
+            spacing: { after: 40 },
+            children: [new docx.TextRun({ text: 'Mengetahui,', font: 'Calibri', size: 22 })],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 900 },
+            children: [
+              new docx.TextRun({
+                text: `Kepala ${satuanPendidikan !== '-' ? satuanPendidikan : 'Sekolah'}`,
+                font: 'Calibri',
+                size: 22,
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 40 },
+            children: [
+              new docx.TextRun({
+                text: namaKepsek,
+                bold: true,
+                underline: {},
+                font: 'Calibri',
+                size: 22,
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 0 },
+            children: [
+              new docx.TextRun({
+                text: `NIP. ${nipKepsek}`,
+                font: 'Calibri',
+                size: 21,
+              }),
+            ],
+          }),
+        ];
+
+        const signatureRightParagraphs = [
+          new docx.Paragraph({
+            spacing: { after: 40 },
+            children: [
+              new docx.TextRun({
+                text: `${tempat}, ${tanggalLengkap}`,
+                font: 'Calibri',
+                size: 22,
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 900 },
+            children: [
+              new docx.TextRun({
+                text: 'Guru Mata Pelajaran / Penyusun,',
+                font: 'Calibri',
+                size: 22,
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 40 },
+            children: [
+              new docx.TextRun({
+                text: namaGuru,
+                bold: true,
+                underline: {},
+                font: 'Calibri',
+                size: 22,
+              }),
+            ],
+          }),
+          new docx.Paragraph({
+            spacing: { after: 0 },
+            children: [
+              new docx.TextRun({
+                text: `NIP. ${nipGuru}`,
+                font: 'Calibri',
+                size: 21,
+              }),
+            ],
+          }),
+        ];
+
+        docChildren.push(
+          new docx.Table({
+            width: { size: 100, type: docx.WidthType.PERCENTAGE },
+            rows: [
+              new docx.TableRow({
+                children: [
+                  new docx.TableCell({
+                    width: { size: 50, type: docx.WidthType.PERCENTAGE },
+                    borders: noBorders(),
+                    margins: { top: 80, bottom: 80, left: 60, right: 120 },
+                    children: signatureLeftParagraphs,
+                  }),
+                  new docx.TableCell({
+                    width: { size: 50, type: docx.WidthType.PERCENTAGE },
+                    borders: noBorders(),
+                    margins: { top: 80, bottom: 80, left: 240, right: 60 },
+                    children: signatureRightParagraphs,
+                  }),
+                ],
+              }),
+            ],
+          })
+        );
+
+        const doc = new docx.Document({
+          sections: [
+            {
+              properties: {
+                page: {
+                  margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+                },
+              },
+              children: docChildren,
+            },
+          ],
+        });
+
+        const blob = await docx.Packer.toBlob(doc);
+        const safeName = `${formInput.kelas}_Fase_${formInput.fase}_${namaGuru}`
+          .replace(/[^a-zA-Z0-9_-]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Modul_Ajar_${safeName || 'Kurikulum_Merdeka'}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        showError('Gagal membuat file Word (.docx): ' + (err instanceof Error ? err.message : String(err)));
+      }
+    }
+
+    // Jalankan inisialisasi saat halaman siap
+    initApp();
+  </script>
+</body>
+</html>
